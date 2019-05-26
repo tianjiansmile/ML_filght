@@ -23,7 +23,7 @@ def map_label(x):
         return 1
 
 if __name__ == '__main__':
-    train = pd.read_excel('approve_feature.xls', sheetname='sheet1')
+    train = pd.read_excel('new_approve_feature _clean.xlsx', sheetname='sheet1')
 
     # data_check(train)
 
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     trainData, testData = train_test_split(train, test_size=0.4)
 
     cat_features = [cont for cont in list(trainData.select_dtypes(
-        include=['float64', 'int64']).columns) if cont not in ['idNum,y']]
+        include=['float64', 'int64']).columns) if cont !='y']
 
     # 变量类型超过5
     more_value_features = []
@@ -64,8 +64,8 @@ if __name__ == '__main__':
         else:
             less_value_features.append(var)
 
-    print(more_value_features)
-    print(less_value_features)
+    print('num',more_value_features)
+    print('cat',less_value_features)
 
     v = DictVectorizer(sparse=False)
     X1 = v.fit_transform(trainData[less_value_features].to_dict('records'))
@@ -81,4 +81,37 @@ if __name__ == '__main__':
     y_predprob = gbm0.predict_proba(X)[:, 1].T
     print("Accuracy : %.4g" % metrics.accuracy_score(y, y_pred))
     print("AUC Score (Train): %f" % metrics.roc_auc_score(np.array(y.T), y_predprob))
+
+    # 在测试集上测试效果
+    cat_features = [cont for cont in list(testData.select_dtypes(
+        include=['float64', 'int64']).columns) if cont != 'y']
+
+    # 变量类型超过5
+    more_value_features = []
+    less_value_features = []
+    # 第一步，检查类别型变量中，哪些变量取值超过5
+    for var in cat_features:
+        valueCounts = len(set(testData[var]))
+        if valueCounts > 5:
+            more_value_features.append(var)  # 取值超过5的变量，需要bad rate编码，再用卡方分箱法进行分箱
+        else:
+            less_value_features.append(var)
+
+    print('num', more_value_features)
+    print('cat', less_value_features)
+
+    v = DictVectorizer(sparse=False)
+    X1 = v.fit_transform(testData[less_value_features].to_dict('records'))
+    # 将独热编码和数值型变量放在一起进行模型训练
+    X2 = np.matrix(testData[more_value_features])
+    X_test = np.hstack([X1, X2])
+    y_test = np.matrix(testData['y']).T
+
+    # 在测试集上测试GBDT性能
+    y_pred = gbm0.predict(X_test)
+    y_predprob = gbm0.predict_proba(X_test)[:, 1].T
+    testData['predprob'] = list(y_predprob)
+    print("Accuracy : %.4g" % metrics.accuracy_score(y_test, y_pred))
+    print("AUC Score (Test): %f" % metrics.roc_auc_score(np.array(y_test)[:, 0], y_predprob))
+
 

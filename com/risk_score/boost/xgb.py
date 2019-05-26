@@ -49,8 +49,29 @@ def apply_feat_map(df, transform):
             array_column_list.append(dummy_array)
     return np.concatenate(array_column_list, axis=1)
 
+def map_label(x):
+    if x == 0:
+        return x
+    else:
+        return 1
 
-df = pd.read_excel(r'C:\Users\Administrator\Desktop\bjpost_20190428.xlsx', sheet_name='sheet2')
+df = pd.read_excel('new_approve_feature _clean.xlsx', sheet_name='sheet1')
+
+# 删除任何一行有空值的记录
+df.dropna(axis=0, how='any', inplace=True)
+
+# 将逾期次数转化为0，1标签
+df['y'] = df['overdue_sum_label'].map(map_label)
+
+# 将不参与训练的特征数据删除
+df.drop(['apply_int_label', 'apply_pdl_label', 'apply_sum_label'
+               , 'approve_int_label', 'approve_pdl_label', 'approve_sum_label', 'overdue_pdl_label',
+            'overdue_int_label', 'overdue_sum_label', 'maxOverdue_pdl_label',
+            'maxOverdue_int_label', 'maxOverdue_sum_label'], axis=1, inplace=True)
+
+
+cat_features = [cont for cont in list(df.select_dtypes(
+    include=['float64', 'int64']).columns) if cont != 'y']
 
 for i in range(1):
     cut = round(0.8 * df.shape[0])

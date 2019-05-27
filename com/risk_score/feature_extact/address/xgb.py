@@ -28,7 +28,11 @@ def train(trainData,testData,col):
     # fit model no training data
     # model = XGBClassifier()
 
-    model = XGBClassifier()
+    # model = XGBClassifier()
+
+    model = XGBClassifier(learning_rate=0.1, min_samples_split=30,
+                          min_samples_leaf=5, max_depth=6, max_features='sqrt',
+                          subsample=0.8, random_state=10)
 
     # 训练集，对没新加入的树进行测试
     eval_set = [(X_train, Y_train)]
@@ -73,36 +77,14 @@ def train(trainData,testData,col):
     ks = sf.KS(testData, 'predprob', 'overdue_days')
     print('Test KS:', ks)
 
-    # plot_importance(model)
-    # pyplot.show()
+    plot_importance(model)
+    pyplot.show()
 
     time_test(model)
 
 def time_test(model):
     file = '秒啦首贷_timetest_pd10.xlsx'
     train = pd.read_excel(file, sheetname='Sheet1')
-    col = ['approve_rate_prov', 'approve_rate_city', 'approve_rate_country',
-           'overdue_rate_prov', 'overdue_rate_city', 'overdue_rate_country',
-           'avg_apply_prov', 'avg_apply_city', 'avg_apply_country',
-           'avg_approve_prov', 'avg_approve_city', 'avg_approve_country',
-           'avg_overdue_prov', 'avg_overdue_city', 'avg_overdue_country',
-           'avg_loanamount_prov', 'avg_loanamount_city', 'avg_loanamount_country',
-
-           'avg_pd3_prov', 'avg_pd3_city', 'avg_pd3_country',
-           'avg_pd7_prov', 'avg_pd7_city', 'avg_pd7_country',
-           'avg_pd10_prov', 'avg_pd10_city', 'avg_pd10_country',
-           'avg_pd14_prov', 'avg_pd14_city', 'avg_pd14_country',
-           'avg_M1_prov', 'avg_M1_city', 'avg_M1_country',
-           'avg_M2_prov', 'avg_M2_city', 'avg_M2_country',
-           'avg_M3_prov', 'avg_M3_city', 'avg_M3_country',
-
-           'pd3_rate_prov', 'pd3_rate_city', 'pd3_rate_country',
-           'pd7_rate_prov', 'pd7_rate_city', 'pd7_rate_country',
-           'pd10_rate_prov', 'pd10_rate_city', 'pd10_rate_country',
-           'pd14_rate_prov', 'pd14_rate_city', 'pd14_rate_country',
-           'M1_rate_prov', 'M1_rate_city', 'M1_rate_country',
-           'M2_rate_prov', 'M2_rate_city', 'M2_rate_country',
-           'M3_rate_prov', 'M3_rate_city', 'M3_rate_country']
 
     # 删除任何一行有空值的记录
     train.dropna(axis=0, how='any', inplace=True)
@@ -115,6 +97,8 @@ def time_test(model):
     # 将不参与训练的特征数据删除
     train.drop(['live_addr', 'overdue_days'], axis=1, inplace=True)
 
+    col = [cont for cont in list(train.select_dtypes(
+        include=['float64', 'int64']).columns) if cont != 'y']
 
     Y_test = train['y']
     X_test = train[col]

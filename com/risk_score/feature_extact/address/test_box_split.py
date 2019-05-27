@@ -156,6 +156,8 @@ def box_split(train,test):
     print('IV sort',IV_values)
     print('IV_name', IV_name)
 
+    plt.show()
+
     '''
     第五步：单变量分析和多变量分析，均基于WOE编码后的值。
     （1）选择IV高于0.01的变量
@@ -226,7 +228,7 @@ def box_split(train,test):
     2，符号为负
     '''
     ### (1)将多变量分析的后变量带入LR模型中
-    multi_analysis = multi_analysis[:6]
+    # multi_analysis = multi_analysis[:6]
     y = train['y']
     X = train[multi_analysis]
     X['intercept'] = [1] * X.shape[0]
@@ -237,30 +239,30 @@ def box_split(train,test):
     pvals = pvals.to_dict()
 
     # ### 有些变量不显著，需要逐步剔除
-    # varLargeP = {k: v for k, v in pvals.items() if v >= 0.1}
-    # varLargeP = sorted(varLargeP.items(), key=lambda d: d[1], reverse=True)
-    # while (len(varLargeP) > 0 and len(multi_analysis) > 0):
-    #     # 每次迭代中，剔除最不显著的变量，直到
-    #     # (1) 剩余所有变量均显著
-    #     # (2) 没有特征可选
-    #     varMaxP = varLargeP[0][0]
-    #     print(varMaxP)
-    #     if varMaxP == 'intercept':
-    #         print('the intercept is not significant!')
-    #         break
-    #     multi_analysis.remove(varMaxP)
-    #     y = trainData['y']
-    #     X = trainData[multi_analysis]
-    #     X['intercept'] = [1] * X.shape[0]
-    #
-    #     LR = sm.Logit(y, X).fit()
-    #     pvals = LR.pvalues
-    #     pvals = pvals.to_dict()
-    #     varLargeP = {k: v for k, v in pvals.items() if v >= 0.1}
-    #     varLargeP = sorted(varLargeP.items(), key=lambda d: d[1], reverse=True)
-    #
-    # summary = LR.summary()
-    # print(summary)
+    varLargeP = {k: v for k, v in pvals.items() if v >= 0.1}
+    varLargeP = sorted(varLargeP.items(), key=lambda d: d[1], reverse=True)
+    while (len(varLargeP) > 0 and len(multi_analysis) > 0):
+        # 每次迭代中，剔除最不显著的变量，直到
+        # (1) 剩余所有变量均显著
+        # (2) 没有特征可选
+        varMaxP = varLargeP[0][0]
+        print(varMaxP)
+        if varMaxP == 'intercept':
+            print('the intercept is not significant!')
+            break
+        multi_analysis.remove(varMaxP)
+        y = train['y']
+        X = train[multi_analysis]
+        X['intercept'] = [1] * X.shape[0]
+
+        LR = sm.Logit(y, X).fit()
+        pvals = LR.pvalues
+        pvals = pvals.to_dict()
+        varLargeP = {k: v for k, v in pvals.items() if v >= 0.1}
+        varLargeP = sorted(varLargeP.items(), key=lambda d: d[1], reverse=True)
+
+    summary = LR.summary()
+    print(summary)
 
     print('入参变量',multi_analysis)
     print(X.shape)
@@ -271,15 +273,47 @@ def box_split(train,test):
     auc = roc_auc_score(train['y'], train['pred'])  # AUC = 0.73
     print('train 准确度Area Under Curve auc',auc,'区分度 KS',ks)
 
-    # X_test = testData[multi_analysis]
-    # print(X_test.shape)
-    # X_test['intercept'] = [1] * X_test.shape[0]
-    # testData['pred'] = LR.predict(X_test)
-    # ks = sf.KS(testData, 'pred', 'y')
-    # auc = roc_auc_score(testData['y'], testData['pred'])  # AUC = 0.73
-    # print('Test 准确度', auc, 'Test 区分度 KS', ks)
+    # 用随机森林法估计变量重要性#
 
-    test_box_split(test, LR)
+    var_WOE_list = multi_analysis_vars_1
+    X = train[var_WOE_list]
+    X = np.matrix(X)
+    y = train['y']
+    y = np.array(y)
+
+    RFC = RandomForestClassifier()
+    RFC_Model = RFC.fit(X, y)
+    features_rfc = train[var_WOE_list].columns
+    featureImportance = {features_rfc[i]: RFC_Model.feature_importances_[i] for i in range(len(features_rfc))}
+    featureImportanceSorted = sorted(featureImportance.items(), key=lambda x: x[1], reverse=True)
+    # we selecte the top 10 features
+    features_selection = [k[0] for k in featureImportanceSorted[:8]]
+
+    y = train['y']
+    X = train[features_selection]
+    X['intercept'] = [1] * X.shape[0]
+
+    LR = sm.Logit(y, X).fit()
+    summary = LR.summary()
+
+    print('RandomForest important featursorted', features_selection)
+
+    train['pred'] = LR.predict(X)
+    ks = sf.KS(train, 'pred', 'y')
+    # ks = sf.ks_calc_auc(train,train['pred'],train['y'])
+    auc = roc_auc_score(train['y'], train['pred'])  # AUC = 0.73
+    print('准确度Area Under Curve auc', auc, '区分度 KS', ks)
+
+    # 用GBDT跑出变量重要性，挑选出合适的变量
+    clf = ensemble.GradientBoostingClassifier()
+    gbdt_model = clf.fit(X, y)
+    importace = gbdt_model.feature_importances_.tolist()
+    featureImportance = zip(multi_analysis, importace)
+    featureImportanceSorted = sorted(featureImportance, key=lambda k: k[1], reverse=True)
+
+    print('GBDT important featursorted', featureImportanceSorted)
+
+    # test_box_split(test, LR)
 
 
 def test_box_split(train,LR):

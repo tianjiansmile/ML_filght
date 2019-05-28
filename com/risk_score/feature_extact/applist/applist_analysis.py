@@ -1,8 +1,11 @@
 #  coding: utf-8
 from gensim import corpora, models, similarities
 from nltk.stem.wordnet import WordNetLemmatizer
+from gensim.models.coherencemodel import CoherenceModel
+import pyLDAvis.gensim
 import jieba
 import json
+import re
 
 history_dict = {}
 # 历史表现
@@ -339,6 +342,9 @@ def handle_mapping(apps,his_data):
 def jieba_split(text):
     # 精确模式
     seg_list = jieba.cut(text, cut_all=False)
+
+    seg_list = jieba.cut(''.join(re.findall('[\u4e00-\u9fa5]+', text)))
+
     # print(u"[精确模式]: ", "/ ".join(seg_list))
 
     seg_list = list(seg_list)
@@ -361,12 +367,13 @@ def app_lda_analysis():
             apps = apps.replace('","','')
             apps = apps.replace('["', '')
             apps = apps.replace('"]', '')
+            apps = apps.replace(',', '')
             # apps = apps.split(',')
-            print(apps)
-            print(type(jieba_split(apps)))
+            # print(apps)
+            print(jieba_split(apps))
             doc_complete.append(jieba_split(apps))
 
-            if count ==1000:
+            if count ==100:
                 break
             # for a in apps:
             #     count += 1
@@ -381,10 +388,37 @@ def app_lda_analysis():
     # 使用 gensim 来创建 LDA 模型对象
     Lda = models.ldamodel.LdaModel
 
-    # 在 DT 矩阵上运行和训练 LDA 模型
-    ldamodel = Lda(doc_term_matrix, num_topics=10, id2word=dictionary, passes=50)
+    # 可视化插件
+    # pyLDAvis.enable_notebook()
 
-    print(ldamodel.print_topics(num_topics=10, num_words=10))
+    for i in [5, 10, 60]:
+        # 在 DT 矩阵上运行和训练 LDA 模型
+        ldamodel = Lda(doc_term_matrix, num_topics=i, id2word=dictionary, passes=50)
+
+
+        # 主题一致性计算
+        cm = CoherenceModel(model=ldamodel, corpus=doc_term_matrix, coherence='u_mass', dictionary=dictionary, processes=-1)
+        # cm = CoherenceModel(model=ldamodel, corpus=doc_term_matrix, coherence='c_v', dictionary=dictionary,
+        #                     processes=-1)
+
+        print('u_mass_valus is: %f' % cm.get_coherence())
+
+        # pyLDAvis.gensim.prepare(ldamodel, doc_term_matrix, dictionary)
+        # ldatopics = ldamodel.show_topics(formatted=False)
+
+
+        print(ldamodel.print_topics(i))
+
+    # 得到一个主题编号和预测概率
+    test = ldamodel.get_document_topics(
+        dictionary.doc2bow(
+            ['王者', '荣耀', '爱奇艺', '开奖', '视频', '拍拍', '贷', '借款', '借钱', '借贷', '意见反馈', '开心', '消消', '乐掌易', '至尊版', '腾讯', '视频',
+             '维信', '卡卡', '贷', '浏览器', '信而富', '快', '钱', '钱包', '公积金', '管家', '斗地主', '移动', '手机', '贷', '今日', '头条', '抖音', '短',
+             '视频', '搜狐', '视频', '酷狗', '音乐', '内涵', '段子', '云闪付', '万能钥匙', '日历', '同步', '百度', '地图', '壹', '钱包', '一键', '锁屏',
+             '现金', '巴士', '京东', '国美', '易卡小赢', '卡贷', '携程', '旅行', '微博', '手机', '淘宝', '支付宝', '你', '我', '贷', '借款']))
+
+
+    print(test)
 
 def app_check():
     with open("record.json", 'r',encoding='UTF-8') as load_f:
@@ -402,7 +436,7 @@ if __name__ == '__main__':
     # app_keyword_analysis()
 
     # 2 主题分类在app数据上的应用
-    # app_lda_analysis()
+    app_lda_analysis()
 
     # 加载历史数据
     # order_dict()
@@ -410,7 +444,7 @@ if __name__ == '__main__':
     # app_history_mapping()
 
     # 对一些关键词app进行统计
-    app_check()
+    # app_check()
 
     endtime = time.time()
     print(' cost time: ', endtime - starttime)

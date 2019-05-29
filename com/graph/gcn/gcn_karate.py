@@ -42,4 +42,4 @@ feature_representations = {
 
 print(feature_representations)
 
-# plot_embeddings(feature_representations)
+plot_embeddings(feature_representations)

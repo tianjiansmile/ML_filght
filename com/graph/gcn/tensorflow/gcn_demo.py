@@ -4,8 +4,8 @@ import networkx as nx
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-# import layers as lg
-# import utils as us
+from com.graph.gcn.tensorflow import layers as lg
+from com.graph.gcn.tensorflow import utils as us
 from sklearn.manifold import TSNE
 
 def gcn():
@@ -18,7 +18,7 @@ def gcn():
 
     # 得到具有自环的邻接矩阵 A_hat
     adj_tilde = adj + np.identity(n=n_nodes)
-    print(adj_tilde)
+    # print(adj_tilde)
     # 构造度矩阵 D_hat 用于聚合每一个节点的邻居以及自己的特征
     d_tilde_diag = np.squeeze(np.sum(np.array(adj_tilde), axis=1))
 
@@ -27,13 +27,96 @@ def gcn():
     d_tilde_inv_sqrt = np.diag(d_tilde_inv_sqrt_diag)
     # dot 矩阵乘法
     adj_norm = np.dot(np.dot(d_tilde_inv_sqrt, adj_tilde), d_tilde_inv_sqrt)
-    print(d_tilde_diag)
-    # adj_norm_tuple = us.sparse_to_tuple(scipy.sparse.coo_matrix(adj_norm))
+    # print(adj_norm)
+
+    adj_norm_tuple = us.sparse_to_tuple(scipy.sparse.coo_matrix(adj_norm))
+
+    # print(adj_norm_tuple)
+
+    # Features are just the identity matrix 特征以单位矩阵表示
+    feat_x = np.identity(n=n_nodes)
+    feat_x_tuple = us.sparse_to_tuple(scipy.sparse.coo_matrix(feat_x))
 
 
-#    print(adj_norm_tuple)
+    print(feat_x_tuple)
+
+    ph = {
+        'adj_norm': tf.sparse_placeholder(tf.float32, name="adj_mat"),
+        'x': tf.sparse_placeholder(tf.float32, name="x")}
+
+    l_sizes = [32, 16, 8]
+
+    o_fc1 = lg.GraphConvLayer(input_dim=feat_x.shape[-1],
+                              output_dim=l_sizes[0],
+                              name='fc1',
+                              act=tf.nn.tanh)(adj_norm=ph['adj_norm'],
+                                              x=ph['x'], sparse=True)
+
+    o_fc2 = lg.GraphConvLayer(input_dim=l_sizes[0],
+                              output_dim=l_sizes[1],
+                              name='fc2',
+                              act=tf.nn.tanh)(adj_norm=ph['adj_norm'], x=o_fc1)
+
+    o_fc3 = lg.GraphConvLayer(input_dim=l_sizes[1],
+                              output_dim=l_sizes[2],
+                              name='fc3',
+                              act=tf.nn.tanh)(adj_norm=ph['adj_norm'], x=o_fc2)
+
+    sess = tf.Session()
+    sess.run(tf.global_variables_initializer())
+
+    feed_dict = {ph['adj_norm']: adj_norm_tuple,
+                 ph['x']: feat_x_tuple}
+
+    outputs = sess.run(o_fc3, feed_dict=feed_dict)
+    print(outputs.shape)
+    nodes = list(g.nodes())
+    labels = node2label(nodes)
+    return outputs,labels,nodes
+
+def node2label(nodes):
+    d = {}
+    res = []
+    with open("karate.node", 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        node, label = line.strip().split()
+        d[int(node)] = int(label)
+    for node in nodes:
+        res.append(d[node])
+    return res
 
 
+def node_id(nodes):
+    res = []
+    for i in nodes:
+        res.append(nodes.index(i))
+    return res
+
+
+def emb_reduction(embeddings):
+    print("Embedding shape:", embeddings.shape)
+    # TSNE's parameter perplexity maybe useful for visualization.
+    tsne = TSNE(n_components=2, perplexity=10, init='pca', random_state=0, n_iter=5000, learning_rate=0.1)
+    emb= tsne.fit_transform(embeddings)
+#    print("After feature reduction:", emb_2.shape)
+    return emb
+
+def plot_embedding(X, nodes, labels):
+    x= X[:, 0]
+    y= X[:, 1]
+    colors = []
+    d = {0:'tomato', 1:'blue', 2:'lightgreen', 3:'lightgray'}
+    for i in range(len(labels)):
+        colors.append(d[labels[i]])
+    plt.scatter(x, y, s=200, c=colors)
+    for x,y, node in zip(x, y, nodes):
+        plt.text(x, y, node, ha='center', va='center', fontsize=8)
+    plt.show()
 
 if __name__ == '__main__':
-    gcn()
+    outputs, labels, nodes = gcn()
+    nodes = node_id(nodes)
+    emb = emb_reduction(outputs)
+    print(emb)
+    plot_embedding(emb, nodes, labels)

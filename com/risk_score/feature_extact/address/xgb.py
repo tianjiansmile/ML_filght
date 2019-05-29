@@ -80,7 +80,7 @@ def train(trainData,testData,col):
     plot_importance(model)
     pyplot.show()
 
-    time_test(model)
+    # time_test(model)
 
 def time_test(model):
     file = '秒啦首贷_timetest_pd10.xlsx'
@@ -120,6 +120,7 @@ def time_test(model):
 
 def miaola_test():
     allData = pd.read_excel('秒啦首贷_train_pd10.xlsx', sheetname='Sheet1')
+
     # 暂时删除有空数据的行
     allData.dropna(axis=0, how='any', inplace=True)
 
@@ -139,5 +140,26 @@ def miaola_test():
     # 训练
     train(trainData, testData,cat_features)
 
+def miaola_app_test():
+    allData = pd.read_excel('../applist/topics.xlsx', sheetname='sheet1')
+
+    # 暂时删除有空数据的行
+    allData.dropna(axis=0, how='any', inplace=True)
+
+
+    # 确保二分类
+    allData['overdue_days'] = allData['overdue_days'].map(label_map)
+
+    cat_features = [cont for cont in list(allData.select_dtypes(
+        include=['float64', 'int64']).columns) if cont != 'overdue_days']
+
+    trainData, testData = train_test_split(allData, test_size=0.33)
+
+    # 训练
+    train(trainData, testData, cat_features)
+
+
 if __name__ == '__main__':
-    miaola_test()
+    # miaola_test()
+
+    miaola_app_test()

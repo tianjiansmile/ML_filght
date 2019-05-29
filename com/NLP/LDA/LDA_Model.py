@@ -80,7 +80,7 @@ def app_lda_train():
     # 可视化插件
     # pyLDAvis.enable_notebook()
 
-    for i in [5, 10, 60]:
+    for i in [20, 60, 80, 120, 180, 200, 250, 400]:
         # 在 DT 矩阵上运行和训练 LDA 模型
         ldamodel = Lda(doc_term_matrix, num_topics=i, id2word=dictionary, passes=50)
 
@@ -90,7 +90,7 @@ def app_lda_train():
         # cm = CoherenceModel(model=ldamodel, corpus=doc_term_matrix, coherence='c_v', dictionary=dictionary,
         #                     processes=-1)
 
-        ldamodel.save('model/applist_lda.model')
+        ldamodel.save('model/applist_lda'+str(i)+'.model')
 
         print('u_mass_valus is: %f' % cm.get_coherence())
 
@@ -119,43 +119,14 @@ def app_lda_train():
     tps = get_all_topic(app_str, ldamodel, dictionary)
     print(tps)
 
-    ldamodel.save('model/applist_lda.model')
+    # ldamodel.save('model/applist_lda.model')
 
 def lda_pect():
     doc_complete = []
-    file = 'D:/特征提取/app列表/appData_list_0.txt'
-    with open(file, 'r', encoding='UTF-8') as rf:
-        count = 0
-        lines = rf.readlines()
-        for line in lines:
-            count += 1
-            line = eval(line)
-            # app = line.split(',')
-            idnum = line[0]
-            apps = line[1]
-            apps = apps.replace('","', '')
-            apps = apps.replace('["', '')
-            apps = apps.replace('"]', '')
-            apps = apps.replace(',', '')
-            apps = apps.replace('  ', '')
-            apps = apps.replace('[', '')
-            apps = apps.replace(']', '')
-            # apps = apps.split(',')
-            # print(apps)
-            # print(jieba_split(apps))
-            doc_complete.append(jieba_split(apps))
-
-            # if count == 5000:
-            #     break
-            # for a in apps:
-            #     count += 1
-            #     print(a)
-            count += 1
-
-    print('app count',count)
 
     # 创建语料的词语词典，每个单独的词语都会被赋予一个索引
-    dictionary = corpora.Dictionary(doc_complete)
+    dictionary = corpora.Dictionary.load("model/dict/applist_13w.dict")
+    # dictionary.save('model/dict/applist_13w.dict')
     #
     # 使用上面的词典，将转换文档列表（语料）变成 DT 矩阵
     # 即给每一个词一个编号，并且给出这个词的词频

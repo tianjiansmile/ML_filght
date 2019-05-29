@@ -493,9 +493,9 @@ def overdue_predict1(file):
 
     # box_split(train)
 
-    trainData, testData = train_test_split(train, test_size=0.3)
+    # trainData, testData = train_test_split(train, test_size=0.3)
 
-    test_box_split.box_split(trainData,testData)
+    test_box_split.box_split(train,None)
 
 
 if __name__ == '__main__':
@@ -513,7 +513,7 @@ if __name__ == '__main__':
     # overdue_predict(file)
 
     # 重新计算了逾期情况 样本量46000，逾期用户8000多，基本为paydayloan
-    file = 'approve_addr_feature_train.xlsx'
+    # file = 'approve_addr_feature_train.xlsx'
     file = '秒啦首贷_train_pd10.xlsx'
     # overdue_predict(file)
     overdue_predict1(file)

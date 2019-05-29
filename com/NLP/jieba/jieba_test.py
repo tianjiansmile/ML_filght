@@ -416,6 +416,11 @@ def order_dict():
     file4 = 'D:/特征提取/历史特征数据/value_list_4.txt'
 
     file5 = 'D:/特征提取/历史特征数据/value_list_5.txt'
+
+    file6 = 'D:/特征提取/历史特征数据/value_list_6.txt'
+    file7 = 'D:/特征提取/历史特征数据/value_list_7.txt'
+    file8 = 'D:/特征提取/历史特征数据/value_list_8.txt'
+    file9 = 'D:/特征提取/历史特征数据/value_list_9.txt'
     history_dict = {}
     with open(file ,'r') as rf:
         for line in rf.readlines():
@@ -506,6 +511,69 @@ def order_dict():
             temp_list = [apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all]
             # print(temp_list)
             history_dict[idnum] = temp_list
+
+    with open(file6 ,'r') as rf:
+        for line in rf.readlines():
+            line = eval(line)
+            idnum = line[0]
+            apply_sum_all = line[3]
+            approve_sum_all = line[6]
+            overdue_sum_all = line[9]
+            loanamount_sum_all = line[12]
+            maxOverdue_sum_all = line[15]
+            # print(line)
+            # print(idnum,apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all)
+            temp_list = [apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all]
+            # print(temp_list)
+            history_dict[idnum] = temp_list
+
+
+    with open(file7 ,'r') as rf:
+        for line in rf.readlines():
+            line = eval(line)
+            idnum = line[0]
+            apply_sum_all = line[3]
+            approve_sum_all = line[6]
+            overdue_sum_all = line[9]
+            loanamount_sum_all = line[12]
+            maxOverdue_sum_all = line[15]
+            # print(line)
+            # print(idnum,apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all)
+            temp_list = [apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all]
+            # print(temp_list)
+            history_dict[idnum] = temp_list
+
+    with open(file8 ,'r') as rf:
+        for line in rf.readlines():
+            line = eval(line)
+            idnum = line[0]
+            apply_sum_all = line[3]
+            approve_sum_all = line[6]
+            overdue_sum_all = line[9]
+            loanamount_sum_all = line[12]
+            maxOverdue_sum_all = line[15]
+            # print(line)
+            # print(idnum,apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all)
+            temp_list = [apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all]
+            # print(temp_list)
+            history_dict[idnum] = temp_list
+
+    with open(file9 ,'r') as rf:
+        for line in rf.readlines():
+            line = eval(line)
+            idnum = line[0]
+            apply_sum_all = line[3]
+            approve_sum_all = line[6]
+            overdue_sum_all = line[9]
+            loanamount_sum_all = line[12]
+            maxOverdue_sum_all = line[15]
+            # print(line)
+            # print(idnum,apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all)
+            temp_list = [apply_sum_all,approve_sum_all,overdue_sum_all,loanamount_sum_all,maxOverdue_sum_all]
+            # print(temp_list)
+            history_dict[idnum] = temp_list
+
+
 
     return history_dict
 if __name__ == '__main__':

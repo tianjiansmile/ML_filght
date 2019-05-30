@@ -80,10 +80,10 @@ def train(trainData,testData,col):
     plot_importance(model)
     pyplot.show()
 
-    # time_test(model)
+    time_test(model)
 
 def time_test(model):
-    file = '秒啦首贷_timetest_pd10.xlsx'
+    file = '../applist/topic_timetest_60.xlsx'
     train = pd.read_excel(file, sheetname='Sheet1')
 
     # 删除任何一行有空值的记录
@@ -95,7 +95,7 @@ def time_test(model):
     print(len(train['y'].unique()))
 
     # 将不参与训练的特征数据删除
-    train.drop(['live_addr', 'overdue_days'], axis=1, inplace=True)
+    train.drop(['overdue_days'], axis=1, inplace=True)
 
     col = [cont for cont in list(train.select_dtypes(
         include=['float64', 'int64']).columns) if cont != 'y']
@@ -141,7 +141,7 @@ def miaola_test():
     train(trainData, testData,cat_features)
 
 def miaola_app_test():
-    allData = pd.read_excel('../applist/topics.xlsx', sheetname='sheet1')
+    allData = pd.read_excel('../applist/topics60.xlsx', sheetname='sheet1')
 
     # 暂时删除有空数据的行
     allData.dropna(axis=0, how='any', inplace=True)

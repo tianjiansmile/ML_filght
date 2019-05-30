@@ -42,7 +42,7 @@ def app_to_dict(app_list):
     # 使用 gensim 来创建 LDA 模型对象
     Lda = models.ldamodel.LdaModel
 
-    for i in [60,120,180]:
+    for i in [280,350,400]:
         # 在 DT 矩阵上运行和训练 LDA 模型
         ldamodel = Lda(doc_term_matrix, num_topics=i, id2word=dictionary)
 
@@ -59,17 +59,17 @@ def app_to_dict(app_list):
 
 def dict_to_lda(app_list):
     count = 0
-    dictionary = corpora.Dictionary.load("model/dict/miaola_5k.dict")
-    topic_num = 120
+    dictionary = corpora.Dictionary.load("model/dict/miaola_8w.dict")
+    topic_num = 300
 
     # 载入模型文件
-    lda = models.LdaModel.load('model/miaola_lda120.model')
+    lda = models.LdaModel.load('model/miaola_lda300.model')
 
     print("准备写表格")
-    f = xlsxwriter.Workbook('topics.xlsx')
+    f = xlsxwriter.Workbook('topics300.xlsx')
     sheet1 = f.add_worksheet(u'sheet1')
     s = 0
-    file_dict = ['tp'+str(i) for i in range(120)]
+    file_dict = ['tp'+str(i) for i in range(topic_num)]
     for key in file_dict:
         sheet1.write(0, s, key)
         s += 1
@@ -83,11 +83,7 @@ def dict_to_lda(app_list):
         temp = ''
         app = temp.join(app)
 
-    # app_str = '789信用贷预约挂号网微信分身版KK部落万元户省钱快报象钱进金钱花日日红贷上钱包爱奇艺有得借钱咖搜狗输入法打包贷芝麻贷美团优酷视频天王白卡宝盈助手火山小视频' \
-    #           '锦带花QQ音乐小宝贷闲聊借贷宝备用钱包良人贷QQ邮箱挺好借大众点评美图秀秀蜂鸟应急万宝荣一点钱包如意口袋狮子头保时借欢乐捕鱼人欢乐豆风花雪月啦啦花每日优鲜' \
-    #           '趣步365应急B612咔叽小米铺淘奇宝猪贝贝青木易贷现金小站饿了么金腰袋美丽钱贷佩琪钱包易趣花金猪口袋微信花无忧美团外卖滴滴出行酷猫借呗应用宝盒马信用幸福花唐僧钱包' \
-    #           '全城闪贷熊猫借呗百度富拓金融鑫泰凭证毒小虎牙'
-
+        # 获得预测题主概率分布
         tps = get_all_topic(app, lda, dictionary,topic_num)
         c = 0
         for t in tps:

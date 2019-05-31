@@ -60,13 +60,13 @@ def app_to_dict(app_list):
 def dict_to_lda(app_list):
     count = 0
     dictionary = corpora.Dictionary.load("model/dict/miaola_8w.dict")
-    topic_num = 300
+    topic_num = 350
 
     # 载入模型文件
-    lda = models.LdaModel.load('model/miaola_lda300.model')
+    lda = models.LdaModel.load('model/miaola_lda350.model')
 
     print("准备写表格")
-    f = xlsxwriter.Workbook('topics300.xlsx')
+    f = xlsxwriter.Workbook('topics350.xlsx')
     sheet1 = f.add_worksheet(u'sheet1')
     s = 0
     file_dict = ['tp'+str(i) for i in range(topic_num)]
@@ -165,10 +165,10 @@ if __name__ == '__main__':
     app_list = data['app_list']
     #
     # # 训练模型
-    app_to_dict(app_list)
+    # app_to_dict(app_list)
     #
     # # 预测主题
-    # dict_to_lda(app_list)
+    dict_to_lda(app_list)
 
     endtime = time.time()
     print(' cost time: ', endtime - starttime)

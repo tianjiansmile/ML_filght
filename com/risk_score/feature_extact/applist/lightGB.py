@@ -112,7 +112,7 @@ def train(trainData, testData, col):
 
 
 def miaola_app():
-    allData = pd.read_excel('topics300.xlsx', sheetname='sheet1')
+    allData = pd.read_excel('topics350.xlsx', sheetname='sheet1')
 
     # 暂时删除有空数据的行
     allData.dropna(axis=0, how='any', inplace=True)

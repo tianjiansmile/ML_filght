@@ -112,7 +112,7 @@ def train(trainData, testData, col):
 
 
 def miaola_app():
-    allData = pd.read_excel('topics350.xlsx', sheetname='sheet1')
+    allData = pd.read_excel('topics120.xlsx', sheetname='sheet1')
 
     # 暂时删除有空数据的行
     allData.dropna(axis=0, how='any', inplace=True)
@@ -134,7 +134,8 @@ def miaola_app():
     train(trainData, testData, cat_features)
 
 def miaola_addr():
-    allData = pd.read_excel('../address/秒啦首贷_train_pd10.xlsx', sheetname='Sheet1')
+    # allData = pd.read_excel('../address/秒啦首贷_train_pd10.xlsx', sheetname='Sheet1')
+    allData = pd.read_excel('../address/approve_addr_feature_pd10.xlsx', sheetname='Sheet1')
 
     # 暂时删除有空数据的行
     allData.dropna(axis=0, how='any', inplace=True)
@@ -148,16 +149,49 @@ def miaola_addr():
     cat_features = [cont for cont in list(allData.select_dtypes(
         include=['float64', 'int64']).columns) if cont != 'overdue_days']
 
-    trainData, testData = train_test_split(allData, test_size=0.33,random_state=43)
+    trainData, testData = train_test_split(allData, test_size=0.23,random_state=43)
 
-    train_rate = trainData.target.sum() / trainData.shape[0]
-    test_rate = testData.target.sum() / testData.shape[0]
+    train_rate = trainData.overdue_days.sum() / trainData.shape[0]
+    test_rate = testData.overdue_days.sum() / testData.shape[0]
+
+    print('train_rate: ',train_rate,' test_rate: ',test_rate)
+
+    # 训练
+    train(trainData, testData, cat_features)
+
+
+def jinpan_feature():
+    allData = pd.read_excel('../new_approve_feature _clean1.xlsx', sheetname='sheet1')
+
+    # 暂时删除有空数据的行
+    allData.dropna(axis=0, how='any', inplace=True)
+
+    # 确保二分类
+    allData['overdue_days'] = allData['maxOverdue_sum_label'].map(label_map)
+
+    # 将不参与训练的特征数据删除
+    allData.drop(['apply_pdl_label','apply_int_label','apply_sum_label',
+                  'approve_pdl_label','approve_int_label','approve_sum_label',
+                  'overdue_pdl_label','overdue_int_label','overdue_sum_label',
+                  'maxOverdue_pdl_label','maxOverdue_int_label','maxOverdue_sum_label'], axis=1, inplace=True)
+
+
+    cat_features = [cont for cont in list(allData.select_dtypes(
+        include=['float64', 'int64']).columns) if cont != 'overdue_days']
+
+    trainData, testData = train_test_split(allData, test_size=0.23,random_state=43)
+
+    train_rate = trainData.overdue_days.sum() / trainData.shape[0]
+    test_rate = testData.overdue_days.sum() / testData.shape[0]
 
     print('train_rate: ',train_rate,' test_rate: ',test_rate)
 
     # 训练
     train(trainData, testData, cat_features)
 if __name__ == '__main__':
-    miaola_app()
+    # miaola_app()
 
-    # miaola_addr()
+    miaola_addr()
+
+    # 评估金盘基础特征
+    # jinpan_feature()

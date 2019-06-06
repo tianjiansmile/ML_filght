@@ -59,14 +59,14 @@ def app_to_dict(app_list):
 
 def dict_to_lda(app_list):
     count = 0
-    dictionary = corpora.Dictionary.load("model/dict/miaola_8w.dict")
-    topic_num = 350
+    dictionary = corpora.Dictionary.load("model/dict/applist_all.dict")
+    topic_num = 70
 
     # 载入模型文件
-    lda = models.LdaModel.load('model/miaola_lda350.model')
+    lda = models.LdaModel.load('model/applist_lda'+str(topic_num)+'.model')
 
     print("准备写表格")
-    f = xlsxwriter.Workbook('topics350.xlsx')
+    f = xlsxwriter.Workbook('topics'+str(topic_num)+'.xlsx')
     sheet1 = f.add_worksheet(u'sheet1')
     s = 0
     file_dict = ['tp'+str(i) for i in range(topic_num)]

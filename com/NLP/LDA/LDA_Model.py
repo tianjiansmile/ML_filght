@@ -142,6 +142,83 @@ def lda_pect():
     tps = get_all_topic(app_str, ldamodel, dictionary)
     print(tps)
 
+
+def perplexity_check(app_list):
+    doc_complete = []
+    count = 0
+    for app in app_list:
+        count += 1
+        app = eval(app)
+        # 去除含有.的数据项
+        app = [a for a in app if '.' not in a]
+        temp = ''
+        app = temp.join(app)
+        # print(app)
+
+        # 分词
+        doc_complete.append(jieba_split(app))
+
+    dictionary = corpora.Dictionary(doc_complete)
+
+    doc_term_matrix = [dictionary.doc2bow(doc) for doc in doc_complete]
+
+    for i in [30,60,90,120,180,250,300,350]:
+        ldamodel = models.LdaModel.load('model/miaola_lda'+str(i)+'.model')
+        perp = perplexity(ldamodel, doc_term_matrix, dictionary, len(dictionary.keys()), num_topics=i)
+        print(i,perp)
+
+
+
+import math
+#计算困惑度，评价模型
+def perplexity(ldamodel, testset, dictionary, size_dictionary, num_topics):
+    """calculate the perplexity of a lda-model"""
+    print('the info of this ldamodel: \n')
+    print('num of testset: %s; size_dictionary: %s; num of topics: %s'%(len(testset), size_dictionary, num_topics))
+    prep = 0.0
+    prob_doc_sum = 0.0
+    topic_word_list = []
+    for topic_id in range(num_topics):
+        topic_word = ldamodel.show_topic(topic_id, size_dictionary)
+        dic = {}
+        for word, probability in topic_word:
+            dic[word] = probability
+        topic_word_list.append(dic)
+    doc_topics_ist = []
+    for doc in testset:
+        doc_topics_ist.append(ldamodel.get_document_topics(doc, minimum_probability=0))
+    testset_word_num = 0
+    for i in range(len(testset)):
+        prob_doc = 0.0 # the probablity of the doc
+        doc = testset[i]
+        doc_word_num = 0 # the num of words in the doc
+        for ddd in doc:
+            word_id = ddd[0]
+            num = ddd[1]
+            prob_word = 0.0 # the probablity of the word
+            doc_word_num += num
+            word = dictionary[word_id]
+            for topic_id in range(num_topics):
+                # cal p(w) : p(w) = sumz(p(z)*p(w|z))
+                prob_topic = doc_topics_ist[i][topic_id][1]
+                prob_topic_word = topic_word_list[topic_id][word]
+                prob_word += prob_topic*prob_topic_word
+            prob_doc += math.log(prob_word) # p(d) = sum(log(p(w)))
+        prob_doc_sum += prob_doc
+        testset_word_num += doc_word_num
+    prep = math.exp(-prob_doc_sum/testset_word_num) # perplexity = exp(-sum(p(d)/sum(Nd))
+    print("the perplexity of this ldamodel is : %s"%prep)
+    return prep
+
+import matplotlib.pyplot as plt
+def graph_draw(topic,perplexity):             #做主题数与困惑度的折线图
+     x=topic
+     y=perplexity
+     plt.plot(x,y,color="red",linewidth=2)
+     plt.xlabel("Number of Topic")
+     plt.ylabel("Perplexity")
+     plt.show()
+
 if __name__ == '__main__':
     import time
 
@@ -151,7 +228,15 @@ if __name__ == '__main__':
     # app_lda_train()
 
     # 主题模型预测
-    lda_pect()
+    # lda_pect()
+
+    import pandas as pd
+    data = pd.read_csv('miaola_extact_5000.csv')
+    # data = pd.read_csv('miaola_extact_5000.csv')
+    app_list = data['app_list']
+
+    # 困惑度
+    perplexity_check(app_list)
 
     endtime = time.time()
     print(' cost time: ', endtime - starttime)

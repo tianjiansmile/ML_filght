@@ -25,13 +25,43 @@ class PyLouvain:
             nodes[n[0]] = 1
             nodes[n[1]] = 1
             w = 1
-            if len(n) == 3:
-                w = int(n[2])
+            # if len(n) >= 3:
+            #     w = float(n[3])
             edges.append(((n[0], n[1]), w))
         # rebuild graph with successive identifiers
         nodes_, edges_ = in_order(nodes, edges)
+        # nodes_, edges_ = nodes, edges
         print("%d nodes, %d edges" % (len(nodes_), len(edges_)))
         return cls(nodes_, edges_)
+
+    @classmethod
+    def from_weight_file(cls, path):
+        f = open(path, 'r')
+        lines = f.readlines()
+        f.close()
+        nodes = {}
+        edges = []
+        for line in lines:
+            n = line.split()
+            if not n:
+                break
+
+            n[0] = int(n[0])
+            n[1] = int(n[1])
+            n[3] = float(n[3])
+
+            nodes[n[0]] = 1
+            nodes[n[1]] = 1
+            w = 1
+            if len(n) >= 3:
+                w = (n[3])
+            edges.append(((n[0], n[1]), w))
+        # rebuild graph with successive identifiers
+        # nodes_, edges_ = in_order(nodes, edges)
+        nodes_, edges_, node_dict = in_order_pro(nodes, edges)
+        # nodes_, edges_ = nodes, edges
+        print("%d nodes, %d edges" % (len(nodes_), len(edges_)))
+        return cls(nodes_, edges_),node_dict
 
     '''
         Builds a graph from _path.
@@ -303,3 +333,21 @@ def in_order(nodes, edges):
         for e in edges:
             edges_.append(((d[e[0][0]], d[e[0][1]]), e[1]))
         return (nodes_, edges_)
+
+def in_order_pro(nodes, edges):
+    # rebuild graph with successive identifiers
+    nodes = list(nodes.keys())
+    node_dict = {}
+    nodes.sort()
+    i = 0
+    nodes_ = []
+    d = {}
+    for n in nodes:
+        node_dict[i] = n
+        nodes_.append(i)
+        d[n] = i
+        i += 1
+    edges_ = []
+    for e in edges:
+        edges_.append(((d[e[0][0]], d[e[0][1]]), e[1]))
+    return (nodes_, edges_, node_dict)

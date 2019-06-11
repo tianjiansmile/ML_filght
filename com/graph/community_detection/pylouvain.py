@@ -46,8 +46,8 @@ class PyLouvain:
             if not n:
                 break
 
-            n[0] = int(n[0])
-            n[1] = int(n[1])
+            # n[0] = int(n[0])
+            # n[1] = int(n[1])
             n[3] = float(n[3])
 
             nodes[n[0]] = 1

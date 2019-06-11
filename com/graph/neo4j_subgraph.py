@@ -62,20 +62,25 @@ def neo4j_to_file(filename,data):
             rel = record[2]
             call_len = record[3]
             times = record[4]
+
+            if rel == 'contact':
+                call_len = '2'
+                times = '2'
+            if rel == 'same_phone':
+                call_len = '999'
+                times = '999'
+
             wf.write(str(sid)+'\t'+str(tid)+'\t'+rel+'\t'+call_len+'\t'+times+'\n')
 
 if __name__ == '__main__':
     my_neo4j = Neo4jHandler(driver)
     # print(my_neo4j)
-    comm = '3229132'
-    # cypher_read = "match path = (p:person)-[a]-(q:person) where p.community='" +comm+"' and q.community='" +comm+"' " \
-    #                " return id(p) as sid,id(q) as tid,type(a) as rel,a.call_len as "  \
-    #               " call_len, a.time as times"
+    comm = '9375315'
 
     cypher_read = "match path = (p:person)-[a]-(q:person) where p.community='" + comm + "' and q.community='" + comm + "' " \
                    " return p.nid as sid,q.nid as tid,type(a) as rel,a.call_len as " \
                    " call_len, a.time as times"
     data = my_neo4j.cypherexecuter(cypher_read)
 
-    filename = '3229132edgelist.txt'
+    filename = 'community_detection/data/'+comm+'edgelist.txt'
     neo4j_to_file(filename, data)

@@ -80,7 +80,7 @@ def silhouette_coefficient(X):
 if __name__ == '__main__':
     beer = pd.read_csv('data.txt', sep=' ')
     X = beer[["calories", "sodium", "alcohol", "cost"]]
-    # kmeans(X)
+    kmeans(X)
     # scaled_kmeans(X)
 
     silhouette_coefficient(X)

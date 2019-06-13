@@ -75,7 +75,7 @@ def neo4j_to_file(filename,data):
 if __name__ == '__main__':
     my_neo4j = Neo4jHandler(driver)
     # print(my_neo4j)
-    comm = '9375315'
+    comm = '8998331'
 
     cypher_read = "match path = (p:person)-[a]-(q:person) where p.community='" + comm + "' and q.community='" + comm + "' " \
                    " return p.nid as sid,q.nid as tid,type(a) as rel,a.call_len as " \

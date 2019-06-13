@@ -2,12 +2,15 @@ from com.graph.community_detection import pylouvain as lou
 from com.graph.embedding.deepwalk.loan import neo4j_subgraph
 from neo4j.v1 import GraphDatabase
 import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D as p3d
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from com.jian.uml import kmeans as KM
+from scipy import stats
 import seaborn as sns
+import numpy
 
 uri = "bolt://localhost:7687"
 driver = GraphDatabase.driver(uri, auth=("neo4j", "123456"))
@@ -90,6 +93,7 @@ def loan_behivior_check(parts):
     node_count = [];gender_rate = [];max_age_diff = []
     avg_age = [];avg_apply = [];avg_approve = [];avg_overdue = []
     avg_loanamount = [];avg_maxoverdue = [];approve_rate = [];overdue_rate = []
+    avg_M3 = [];avg_pd10 = []
     for par in community_pool:
         comm = community_pool[par]
         # node_count,gender_rate,max_age_diff,avg_age,avg_apply,avg_approve,
@@ -107,6 +111,8 @@ def loan_behivior_check(parts):
             avg_maxoverdue.append(feature[8])
             approve_rate.append(feature[9])
             overdue_rate.append(feature[10])
+            avg_M3.append(feature[11])
+            avg_pd10.append(feature[12])
 
             feature_pool[par] = feature
             nodes.append(par)
@@ -117,11 +123,11 @@ def loan_behivior_check(parts):
     pd_data = {'id':nodes,'node_count':node_count,'gender_rate':gender_rate,'max_age_diff':max_age_diff,
                'avg_age':avg_age,'avg_apply':avg_apply,'avg_approve':avg_approve,'avg_overdue':avg_overdue,
                'avg_loanamount':avg_loanamount,'avg_maxoverdue':avg_maxoverdue,'approve_rate':approve_rate,
-               'overdue_rate':overdue_rate}
+               'overdue_rate':overdue_rate,'avg_M3':avg_M3,'avg_pd10':avg_pd10}
 
-    col_list = ['node_count', 'gender_rate','max_age_diff',
+    col_list = ['id','node_count', 'gender_rate','max_age_diff',
                 'avg_age','avg_apply','avg_approve','avg_overdue',
-                'avg_loanamount','avg_maxoverdue','approve_rate','overdue_rate']
+                'avg_loanamount','avg_maxoverdue','approve_rate','overdue_rate','avg_M3','avg_pd10']
 
 
     df = pd.DataFrame(pd_data, columns=col_list)
@@ -130,11 +136,13 @@ def loan_behivior_check(parts):
 
 # 对每一个特征进行简单分析
 def data_check(train):
+
     print(train.shape)
+    # 均值mean 方差std 最大最小 min max
     # print(train.describe())
 
     # 查看空值情况 ,数据已经被清洗过，非常clean
-    print(pd.isnull(train).values.any())
+    # print(pd.isnull(train).values.any())
 
     # 数据的整体状况
     # print(train.info())
@@ -149,30 +157,31 @@ def data_check(train):
 
     plt.figure(figsize=(16, 8))
     # # 我们看一下损失值的分布 损失值中有几个显著的峰值表示严重事故。这样的数据分布，使得这个功能非常扭曲导致的回归表现不佳。
-    plt.plot(train['id'], train['gender_rate'])
+    plt.plot(train['node_count'], train['gender_rate'])
     plt.title('gender_rate values per id')
-    plt.xlabel('id')
+    plt.xlabel('node_count')
     plt.ylabel('gender_rate')
     plt.legend()
     plt.show()
     # # 基本上，偏度度量了实值随机变量的均值分布的不对称性。让我们计算损失的偏度：
-    # stats.mstats.skew(train['loss']).data
+    bis = stats.mstats.skew(train['gender_rate']).data
+    print(bis)
     #
     # # 数据确实是倾斜的  对数据进行对数变换通常可以改善倾斜，可以使用 np.log
-    # stats.mstats.skew(np.log(train['loss'])).data
-    #
+    # stats.mstats.skew(np.log(train['gender_rate'])).data
+    # #
     # fig, (ax1, ax2) = plt.subplots(1, 2)
     # fig.set_size_inches(16, 5)
-    # ax1.hist(train['loss'], bins=50)
-    # ax1.set_title('Train Loss target histogram')
+    # ax1.hist(train['gender_rate'], bins=50)
+    # ax1.set_title('Train gender_rate target histogram')
     # ax1.grid(True)
-    # ax2.hist(np.log(train['loss']), bins=50, color='g')
-    # ax2.set_title('Train Log Loss target histogram')
+    # ax2.hist(np.log(train['gender_rate']), bins=50, color='g')
+    # ax2.set_title('Train Log gender_rate target histogram')
     # ax2.grid(True)
-    # plt.show()
-
-    # 查看所有连续变量的分布
-    # train[cont_features].hist(bins=50, figsize=(16, 12))
+    #
+    # 查看所有连续变量的分布,柱状图
+    train[cont_features].hist(bins=50, figsize=(16, 12))
+    plt.show()
 
  # 特征之间的相关性
 def feature_col(X):
@@ -190,7 +199,7 @@ def kmeans(X,w,beer):
     node_pos = TSNE_handle(X,col)
 
     # 分类个数
-    label_count = 3
+    label_count = 7
 
     # 2类
     km = KMeans(n_clusters=label_count).fit(node_pos)
@@ -202,8 +211,21 @@ def kmeans(X,w,beer):
     beer['tn2'] = node_pos[:,1]
     # beer['tn3'] = node_pos[:,2]
 
-    beer.drop(w, axis=1, inplace=True)
+    # w.remove('id')
+    # w.remove('node_count')
+    # beer.drop(w, axis=1, inplace=True)
     centers = beer.groupby("cluster").mean().reset_index()
+
+    # 获得pd所有列名
+    # print(list(beer.columns))
+    # print(beer[['id','node_count','cluster']])
+    cluster = beer.groupby("cluster")
+    # print(cluster.describe())
+    # 查看每一个分类的特征均值分布，验证
+    print((cluster.aggregate({"avg_apply": numpy.mean,"avg_approve": numpy.mean,
+                              "avg_overdue": numpy.mean,"avg_maxoverdue": numpy.mean,"avg_M3": numpy.mean})))
+    print((cluster.aggregate({"approve_rate": numpy.mean, "max_age_diff": numpy.mean, "gender_rate": numpy.mean,
+                              "node_count": numpy.mean})))
 
     color_idx = {}
     for i in range(label_count):
@@ -219,6 +241,7 @@ def kmeans(X,w,beer):
     # print(color_idx)
 
     plot_2D(color_idx, node_pos, centers, label_count)
+    # plot_3D(color_idx, node_pos, centers, label_count)
 
 def plot_2D(color_idx,new_df,centers,label_count):
     for c, idx in color_idx.items():
@@ -229,25 +252,32 @@ def plot_2D(color_idx,new_df,centers,label_count):
     plt.legend()
     plt.show()
 
+def plot_3D(color_idx,new_df,centers,label_count):
+
+    p3d = plt.figure().add_subplot(111, projection='3d')
+    for c, idx in color_idx.items():
+        p3d.scatter(new_df[idx, 0], new_df[idx, 1], new_df[idx, 2], zdir='z', label=c,s=30, c=None, depthshade=True)
+    plt.legend()
+    plt.show()
 # 对每一个特征画图了解分布情况
 def plot_check(df ):
     df['node_count'].plot()
     df['avg_maxoverdue'].plot()
     plt.show()
-
+    #
     df['gender_rate'].plot()
     plt.show()
 
     df['max_age_diff'].plot()
     df['avg_age'].plot()
     df['node_count'].plot()
-    # plt.show()
+    plt.show()
     df['avg_apply'].plot()
     plt.show()
 
-    df['avg_loanamount'].plot()
-    df['node_count'].plot()
-    plt.show()
+    # df['avg_loanamount'].plot()
+    # df['node_count'].plot()
+    # plt.show()
 
 # 将embedding向量转化为二维空间数据
 def plot_embeddings(embeddings, nodes):
@@ -287,6 +317,8 @@ def feature_handler(comm):
     avg_overdue = 0
     avg_loanamount = 0.0
     avg_maxoverdue = 0
+    avg_M3 = 0
+    avg_pd10 = 0
 
     for item in comm:
         sex = item[1]
@@ -302,8 +334,9 @@ def feature_handler(comm):
         count += 1
         if sex=='1': male+=1
         if sex=='2': famale+=1
-        if int(age) > max_age: max_age=int(age)
-        if int(age) < min_age: min_age=int(age)
+        if int(age) > 0:
+            if int(age) > max_age: max_age=int(age)
+            if int(age) < min_age: min_age=int(age)
         avg_age+=int(age)
         avg_apply+=int(apply)
         avg_approve+=int(approve)
@@ -311,45 +344,101 @@ def feature_handler(comm):
         avg_loanamount += float(loanamount)
         avg_maxoverdue += float(max_overdue)
 
+        if float(max_overdue)>=90:
+            avg_M3+=1
+
+        if float(max_overdue)>=10:
+            avg_pd10+=1
+
     # print(comm)
     # print('count',count,'male',male,'famale',famale,'max_age',max_age,'min_age',min_age)
     # 男女比 默认 全为男性
-    gender_rate = 0
+    # gender_rate = 0
+    # max_age_diff = 0
     if count is not 0:
         gender_rate = round(male/count,2)
-    # 最大年龄差
-    max_age_diff = max_age - min_age
 
-    # 通过率
-    approve_rate = 0
-    # 逾期率
-    overdue_rate = 0
-    if avg_apply is not 0:
-        approve_rate = round(avg_approve / avg_apply, 2)
-    if avg_approve is not 0:
-        overdue_rate = round(overdue_rate / avg_approve, 2)
+        # 最大年龄差
+        max_age_diff = max_age - min_age
 
-    #  节点数
-    node_count = len(comm)
-    # print('avg_age', avg_age, 'avg_apply', avg_apply, 'avg_approve', avg_approve,
-    #       'avg_overdue', avg_overdue, 'avg_loanamount', avg_loanamount, 'avg_maxoverdue', avg_maxoverdue)
-    if count is not 0:
+        # print('count',count,'male',male,'famale',famale,'max_age',max_age,'min_age',min_age,'max_age_diff',max_age_diff)
+
+        # 通过率
+        approve_rate = 0
+        # 逾期率
+        overdue_rate = 0
+        if avg_apply is not 0:
+            approve_rate = round(avg_approve / avg_apply, 2)
+        if avg_approve is not 0:
+            overdue_rate = round(overdue_rate / avg_approve, 2)
+
+        #  节点数
+        node_count = len(comm)
+        # print('avg_age', avg_age, 'avg_apply', avg_apply, 'avg_approve', avg_approve,
+        #       'avg_overdue', avg_overdue, 'avg_loanamount', avg_loanamount, 'avg_maxoverdue', avg_maxoverdue)
         avg_age = round(avg_age/count,2)
         avg_apply = round(avg_apply / count, 2)
         avg_approve = round(avg_approve / count, 2)
         avg_overdue = round(avg_overdue / count, 2)
         avg_loanamount = round(avg_loanamount / count, 2)
         avg_maxoverdue = round(avg_maxoverdue / count, 2)
+        avg_M3 = round(avg_M3 / count,2)
+        avg_pd10 = round(avg_pd10 / count, 2)
 
         return [node_count,gender_rate,max_age_diff,avg_age,avg_apply,avg_approve,
-                avg_overdue,avg_loanamount,avg_maxoverdue,approve_rate,overdue_rate]
+                avg_overdue,avg_loanamount,avg_maxoverdue,approve_rate,overdue_rate,avg_M3,avg_pd10]
 
+# 定为一些有欺诈风险的团体，
+# avg_approve: 高 overdue：高  通过率高的一些团体，逾期的指标也高的话，这个团体欺诈风险很高
+# avg_approve: 低 overdue：高  通过率一般，但是逾期指标较高，团体潜在欺诈风险较高
+# 通过指标：avg_approve均值位0.36  approve_rate均值位0.11
+# 逾期指标：avg_overdue 均值位0.25 avg_maxoverdue均值位9.72 avg_M3均值位0.04  avg_pd10 均值位0.06
+def locate_risk_community(df,part):
+    # 团平均通过次数 baseline
+    avg_approve = 0.36
+    # 团申请通过比
+    approve_rate = 0.11
+
+    # 最大逾期天数均值
+    avg_maxoverdue = 9.72
+    # 团平均逾期次数
+    avg_overdue = 0.25
+    # 团平均M3次数
+    avg_M3 = 0.04
+
+    # 团平均M3次数
+    avg_M3 = 0.04
+    avg_pd10 = 0.06
+
+    # 对数据进行过滤，找到通过率和最大逾期天数都高于平均水平的数据
+    new1 = df.query('avg_maxoverdue > 9.72').query('avg_approve > 0.36') \
+                    .sort_values('avg_maxoverdue') \
+                    .tail(20)
+    #
+    # data_check(new1)
+
+    # plot_check(new1)
+
+    print(new1[['avg_apply','avg_approve','avg_loanamount',
+                'avg_M3', 'avg_maxoverdue','node_count']])
+
+    # print(part[202])
+    # 打印高风险团体成员
+    print(part[261])
 
 if __name__ == '__main__':
+    import time
+    starttime = time.time()
     my_neo4j = neo4j_subgraph.Neo4jHandler(driver)
 
-    comm = '9375315'
     comm = '3229132'
+    comm = '9375315'
+    comm = '3920885'
+    comm = '4818846'
+    # comm = '7875775'
+    comm = '8998331'
+
+    # 获得团体编号，以及团体成员
     parts = test_loan_network(comm)
     # 团特征计算
     df,col_list = loan_behivior_check(parts)
@@ -365,12 +454,24 @@ if __name__ == '__main__':
     # 特征之间的相关性
     # feature_col(X)
 
+    for col in df.columns:
+        print(col,"该列数据的均值位%.2f" % df[col].mean())  # 计算每列均值
+    #
+    # print('方差：',df.std(ddof=0))
     # 特征数据分析
-    data_check(df)
+    # data_check(df)
+
+    # 定位一些有欺诈风险的团体
+    # locate_risk_community(df,parts)
 
     # 聚类评估：轮廓系数（Silhouette Coefficient ）
     # 通过轮廓系数 来确定最优的分类个数，越大越好
+    #
     # KM.silhouette_coefficient(X)
 
     # 无监督分类
-    # kmeans(X,col_list,df)
+    X.drop(['id'], axis=1, inplace=True)
+    kmeans(X,col_list,df)
+
+    endtime = time.time()
+    print(' cost time: ', endtime - starttime)

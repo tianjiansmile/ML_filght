@@ -11,6 +11,7 @@ from com.jian.uml import kmeans as KM
 from scipy import stats
 import seaborn as sns
 import numpy
+import requests
 
 uri = "bolt://localhost:7687"
 driver = GraphDatabase.driver(uri, auth=("neo4j", "123456"))
@@ -27,10 +28,10 @@ def TSNE_handle(embeddings,col):
 
     return node_pos
 
-def test_loan_network(comm):
+def test_loan_network(comm,weight_mark):
 
-    # pyl = lou.PyLouvain.from_file('data/3229132edgelist.txt')
-    pyl,node_dict = lou.PyLouvain.from_weight_file('data/'+comm+'edgelist.txt')
+    # pyl,node_dict = lou.PyLouvain.from_weight_file('data/md5_rels.csv')
+    pyl,node_dict = lou.PyLouvain.from_weight_file('data/'+comm+'edgelist.txt',weight=weight_mark)
     # print(node_dict)
     partition, q = pyl.apply_method()
     # Q就是模块度，模块度越大则表明社区划分效果越好。Q值的范围在[-0.5,1），论文表示当Q值在0.3~0.7之间时，说明聚类的效果很好
@@ -49,7 +50,7 @@ def test_loan_network(comm):
 
 
 # 从网络中查询每一个节点的基础特征
-def get_features(nid):
+def get_features(nid,my_neo4j):
     cypher = "match (p:person) where p.nid = '"+nid+"' return p.sex as sex," \
              "p.age as age,p.apply as apply,p.approve as approve," \
              "p.overdue as overdue,p.loanamount as loanamount,p.max_overdue as max_overdue"
@@ -72,9 +73,31 @@ def get_features(nid):
     # print(sex,age,apply,approve,overdue,loanamount,max_overdue)
     return sex,age,apply,approve,overdue,loanamount,max_overdue
 
+# 实时计算特征
+def get_loan_feature(nid):
+    all_dic = {}
+    url = 'http://47.101.206.54:8023/getModelEncyLoanFeatures?identityNo=%s'
+    res = requests.get(url % (nid))
+
+
+    if res.status_code==200:
+        all_list=[]
+        res=res.json()
+        result=res.get('result')
+        features=result.get('features')
+        if features:
+            user_feature = features.get('user_feature')
+            loan_behavior_feature = features.get('loan_behavior_feature')
+            loan_merchant_feature = features.get('loan_merchant_feature')
+            # print(loan_merchant_feature)
+
+
+        return loan_behavior_feature,loan_merchant_feature
+    else:
+        return None
 
 #   对分团之后的团体进行历史特征评估
-def loan_behivior_check(parts):
+def loan_behivior_check(parts,my_neo4j):
     feature_pool = {}
     community_pool = {}
     nodes = []
@@ -83,7 +106,7 @@ def loan_behivior_check(parts):
     for par in parts:
         community_pool[count] = []
         for p in par:
-            sex,age,apply,approve,overdue,loanamount,max_overdue = get_features(p)
+            sex,age,apply,approve,overdue,loanamount,max_overdue = get_features(p,my_neo4j)
             community_pool[count].append((p,sex,age,apply,approve,overdue,loanamount,max_overdue))
         count+=1
     # print(community_pool)
@@ -133,6 +156,46 @@ def loan_behivior_check(parts):
     df = pd.DataFrame(pd_data, columns=col_list)
 
     return df,col_list
+
+# 实时查询用户的多头情况
+def loan_behivior_check_pro(parts):
+    # 查询特征
+    feature_pool = []
+    for p in parts:
+        loan_behavior_feature,loan_merchant_feature = get_loan_feature(p)
+        feature_pool.append((
+            loan_merchant_feature.get('apply_mert_pdl_diff_1'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_2'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_3'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_4'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_5'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_6'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_7'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_8'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_9'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_10'),
+            loan_merchant_feature.get('apply_mert_pdl_diff_11'),
+            loan_merchant_feature.get('apply_mert_pdl_sum'),
+
+            loan_merchant_feature.get('apply_mert_int_diff_1'),
+            loan_merchant_feature.get('apply_mert_int_diff_2'),
+            loan_merchant_feature.get('apply_mert_int_diff_3'),
+            loan_merchant_feature.get('apply_mert_int_diff_4'),
+            loan_merchant_feature.get('apply_mert_int_diff_5'),
+            loan_merchant_feature.get('apply_mert_int_diff_6'),
+            loan_merchant_feature.get('apply_mert_int_diff_7'),
+            loan_merchant_feature.get('apply_mert_int_diff_8'),
+            loan_merchant_feature.get('apply_mert_int_diff_9'),
+            loan_merchant_feature.get('apply_mert_int_diff_10'),
+            loan_merchant_feature.get('apply_mert_int_diff_11'),
+            loan_merchant_feature.get('apply_mert_int_sum'),
+
+
+        ))
+
+    return feature_pool
+
+
 
 # 对每一个特征进行简单分析
 def data_check(train):
@@ -414,17 +477,34 @@ def locate_risk_community(df,part):
     new1 = df.query('avg_maxoverdue > 9.72').query('avg_approve > 0.36') \
                     .sort_values('avg_maxoverdue') \
                     .tail(20)
+
+    new2 = df.query('avg_maxoverdue < 9.72').query('avg_approve < 0.36') \
+        .sort_values('avg_maxoverdue')[:40] \
+
     #
     # data_check(new1)
 
     # plot_check(new1)
 
-    print(new1[['avg_apply','avg_approve','avg_loanamount',
+    print(new1[['avg_apply','avg_approve','avg_overdue',
                 'avg_M3', 'avg_maxoverdue','node_count']])
 
+    print(new2[['avg_apply', 'avg_approve', 'avg_overdue',
+                'avg_M3', 'avg_maxoverdue', 'node_count']])
+
+    # print(part[199 ])
+    # # # 打印高风险团体成员
     # print(part[202])
-    # 打印高风险团体成员
-    print(part[261])
+    # print(part[99])
+
+def write_parts(parts):
+    with open('all_part.txt','w') as wf:
+
+        count = 0
+        for p in parts:
+            print(p)
+            wf.write(str(count)+'\t'+str(p)+'\n')
+            count+=1
 
 if __name__ == '__main__':
     import time
@@ -432,46 +512,53 @@ if __name__ == '__main__':
     my_neo4j = neo4j_subgraph.Neo4jHandler(driver)
 
     comm = '3229132'
-    comm = '9375315'
-    comm = '3920885'
-    comm = '4818846'
-    # comm = '7875775'
-    comm = '8998331'
+    # comm = '9375315'
+    # comm = '3920885'
+    # comm = '4818846'
+    # # comm = '7875775'
+    # comm = '8998331'
 
     # 获得团体编号，以及团体成员
-    parts = test_loan_network(comm)
+    # weight_mark 1 默认使用权重
+    parts = test_loan_network(comm,1)
+
+    # write_parts(parts)
+
     # 团特征计算
-    df,col_list = loan_behivior_check(parts)
+    df,col_list = loan_behivior_check(parts,my_neo4j)
 
-    # 折线图查看每一维度分布
-    # plot_check(df)
-
-    # 降维
-    # plot_embeddings(feature_pool,nodes)
-
+    # 团实时特征计算
+    # df, col_list = loan_behivior_check_pro(parts)
+    #
+    # # 折线图查看每一维度分布
+    # # plot_check(df)
+    #
+    # # 降维
+    # # plot_embeddings(feature_pool,nodes)
+    #
     X = df[col_list]
-
-    # 特征之间的相关性
-    # feature_col(X)
-
-    for col in df.columns:
-        print(col,"该列数据的均值位%.2f" % df[col].mean())  # 计算每列均值
     #
-    # print('方差：',df.std(ddof=0))
-    # 特征数据分析
-    # data_check(df)
-
-    # 定位一些有欺诈风险的团体
-    # locate_risk_community(df,parts)
-
-    # 聚类评估：轮廓系数（Silhouette Coefficient ）
-    # 通过轮廓系数 来确定最优的分类个数，越大越好
+    # # 特征之间的相关性
+    # # feature_col(X)
     #
-    # KM.silhouette_coefficient(X)
-
-    # 无监督分类
-    X.drop(['id'], axis=1, inplace=True)
-    kmeans(X,col_list,df)
+    # for col in df.columns:
+    #     print(col,"该列数据的均值位%.2f" % df[col].mean())  # 计算每列均值
+    # #
+    # # print('方差：',df.std(ddof=0))
+    # # 特征数据分析
+    # # data_check(df)
+    #
+    # # 定位一些有欺诈风险的团体
+    locate_risk_community(df,parts)
+    #
+    # # 聚类评估：轮廓系数（Silhouette Coefficient ）
+    # # 通过轮廓系数 来确定最优的分类个数，越大越好
+    # #
+    # # KM.silhouette_coefficient(X)
+    #
+    # # 无监督分类
+    # X.drop(['id'], axis=1, inplace=True)
+    # kmeans(X,col_list,df)
 
     endtime = time.time()
     print(' cost time: ', endtime - starttime)

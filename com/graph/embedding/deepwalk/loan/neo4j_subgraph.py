@@ -67,7 +67,7 @@ def neo4j_to_file(filename,data):
 if __name__ == '__main__':
     my_neo4j = Neo4jHandler(driver)
     # print(my_neo4j)
-    comm = '3229132'
+    comm = '8998331'
     # cypher_read = "match path = (p:person)-[a]-(q:person) where p.community='" +comm+"' and q.community='" +comm+"' " \
     #                " return id(p) as sid,id(q) as tid,type(a) as rel,a.call_len as "  \
     #               " call_len, a.time as times"
@@ -77,5 +77,5 @@ if __name__ == '__main__':
                    " call_len, a.time as times"
     data = my_neo4j.cypherexecuter(cypher_read)
 
-    filename = '3229132edgelist.txt'
+    filename = comm+'edgelist.txt'
     neo4j_to_file(filename, data)

@@ -29,10 +29,10 @@ def roulette(_datas, _ps):
 	return np.random.choice(_datas, p=_ps)
 
 # 从图中提取节点特征
-def node_vec(G,nodes):
+def node_vec(G,nodes,comm):
     num = 10
     deep_num = 20 # 跳数
-    with open('little_sentence.txt','w') as f:
+    with open(comm+'sentence.txt','w') as f:
         k = 1
         for word in nodes:
             print(k)
@@ -60,10 +60,12 @@ def draw_graph(G):
 
 
 if __name__ == '__main__':
-    G = nx.read_edgelist('little_edgelist.txt',
+    comm = '8998331'
+
+    G = nx.read_edgelist(comm+'edgelist.txt',
                          create_using=nx.Graph(), nodetype=None, data=[('type', str),('call_len', float),('times', int)])
     nodes = G.nodes
 
     # draw_graph(G)
 
-    node_vec(G,nodes)
+    node_vec(G,nodes,comm)

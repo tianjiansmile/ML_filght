@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 
 
 # 通过word2vec生成节点特征
-def word_to_vec(nodes):
-    with open('little_sentence.txt','r') as f:
+def word_to_vec(nodes,comm):
+    with open(comm+'sentence.txt','r') as f:
         sentences = []
         for line in f:
             cols = line.strip().split('\t')
@@ -31,7 +31,7 @@ def word_to_vec(nodes):
     # model.save(fname)
     # model.wv.save_word2vec_format(outfile + '.model.bin', binary=True)
     # 将特征保存
-    # model.wv.save_word2vec_format('little_word_vec.txt', binary=False)
+    model.wv.save_word2vec_format(comm+'word_vec.txt', binary=False)
     # fname = './testmodel-0103'
     # model = gensim.models.Word2Vec.load(fname)
     # a = model.most_similar('0')
@@ -117,18 +117,19 @@ def plot_label_embeddings_3D(embeddings, nodes):
 if __name__ == '__main__':
     import time
 
+    comm = '8998331'
     starttime = time.time()
-    G = nx.read_edgelist('little_edgelist.txt',
+    G = nx.read_edgelist(comm+'edgelist.txt',
                          create_using=nx.Graph(), nodetype=None,
                          data=[('type', str), ('call_len', float), ('times', int)])
     nodes = G.nodes
 
 
     # 成功提取word2vec特征
-    features = word_to_vec(nodes)
+    features = word_to_vec(nodes,comm)
 
     # 查看表示学习之后的空间分布
-    plot_embeddings(features, nodes)
+    # plot_embeddings(features, nodes)
 
     # plot_label_embeddings_3D(features, nodes)
 

@@ -246,18 +246,21 @@
 	  
 	3 线下网络挖掘
 		  1 首先需要确定每一个连通分量，对不同的连通分量做社区挖掘，如果都不连通的话，那就没什么联系了
-		  利用algo的算法，按照节点的连通性对节点进行分区标记
+		  利用algo的算法，按照节点的连通性对节点进行分区标记    neo4j可行
 		  CALL algo.unionFind('person', '', {write:true, partitionProperty:"partition"})
 				YIELD nodes, setCount, loadMillis, computeMillis, writeMillis;
+				
+		  分区总数：1076119  一个超级分区总结点数：8267503 剩余100多万节点大部分是孤立的
 				
 		  CALL algo.unionFind('person', '', {graph:'huge',write:true, partitionProperty:"partition"})
 			YIELD nodes, setCount, loadMillis, computeMillis, writeMillis;
 		 
-		 # 通过标签传播算法分区
+		 # 通过标签传播算法分区  neo4j可以实现
 		  CALL algo.labelPropagation('person', 'call','BOTH',
-		  {iterations:10,partitionProperty:'lcommunity', write:true})
+		  {iterations:10,partitionProperty:'community', write:true})
 		YIELD nodes, iterations, loadMillis, computeMillis, writeMillis, write, partitionProperty;
 		
+		社区总数： 2298889 社区人数大于10： 96147   社区人数大于100：c_100 5757
 		   
 		  
 		  2 确定不同分区之后，按社区节点多少降序排序，开始对分区进行社区算法的研究，具体：

@@ -72,6 +72,23 @@ def neo4j_to_file(filename,data):
 
             wf.write(str(sid)+'\t'+str(tid)+'\t'+rel+'\t'+call_len+'\t'+times+'\n')
 
+# 对网络中的社区进行简单统计分析
+def comm_count(my_neo4j):
+    cypher_read = "MATCH (u:person) RETURN u.partition as partition,count(*) as size_of_partition ORDER by partition DESC"
+    data = my_neo4j.cypherexecuter(cypher_read)
+    count = 0
+    c_10 = 0
+    c_100 = 0
+    for da in data:
+        count+=1
+        if da[1] >10:
+            c_10+=1
+            if da[1] > 100:
+                c_100+=1
+        else:
+            print(da)
+
+    print(count,'c_10',c_10,'c_100',c_100)
 if __name__ == '__main__':
     my_neo4j = Neo4jHandler(driver)
     # print(my_neo4j)
@@ -80,7 +97,19 @@ if __name__ == '__main__':
     cypher_read = "match path = (p:person)-[a]-(q:person) where p.community='" + comm + "' and q.community='" + comm + "' " \
                    " return p.nid as sid,q.nid as tid,type(a) as rel,a.call_len as " \
                    " call_len, a.time as times"
-    data = my_neo4j.cypherexecuter(cypher_read)
+    # data = my_neo4j.cypherexecuter(cypher_read)
+    #
+    # filename = 'community_detection/data/'+comm+'edgelist.txt'
+    # neo4j_to_file(filename, data)
 
-    filename = 'community_detection/data/'+comm+'edgelist.txt'
-    neo4j_to_file(filename, data)
+    # 对网络中的社区进行简单统计分析
+    # comm_count(my_neo4j)
+
+    # 尝试对网络中的超级大分区进行社团化
+    # part=2516272
+    # cypher_read = "match path = (p:person)-[a]-(q:person) where p.partition=" + comm + " and q.partition=" + comm + " " \
+    #                " return p.nid as sid,q.nid as tid,type(a) as rel,a.call_len as " \
+    #                " call_len, a.time as times"
+    #
+    # filename = 'community_detection/data/'+comm+'edgelist.txt'
+    # neo4j_to_file(filename, data)

@@ -35,27 +35,31 @@ class PyLouvain:
         return cls(nodes_, edges_)
 
     @classmethod
-    def from_weight_file(cls, path):
+    def from_weight_file(cls, path,weight=1):
         f = open(path, 'r')
         lines = f.readlines()
         f.close()
         nodes = {}
         edges = []
+        line_num = 0
         for line in lines:
-            n = line.split()
-            if not n:
-                break
+            line_num += 1
+            if (line_num != 1):
+                n = line.split()
+                if not n:
+                    break
 
-            # n[0] = int(n[0])
-            # n[1] = int(n[1])
-            n[3] = float(n[3])
+                # n[0] = int(n[0])
+                # n[1] = int(n[1])
+                n[3] = float(n[3])
 
-            nodes[n[0]] = 1
-            nodes[n[1]] = 1
-            w = 1
-            if len(n) >= 3:
-                w = (n[3])
-            edges.append(((n[0], n[1]), w))
+                nodes[n[0]] = 1
+                nodes[n[1]] = 1
+                w = 1
+                if weight == 1:
+                    if len(n) >= 3:
+                        w = (n[3])
+                edges.append(((n[0], n[1]), w))
         # rebuild graph with successive identifiers
         # nodes_, edges_ = in_order(nodes, edges)
         nodes_, edges_, node_dict = in_order_pro(nodes, edges)

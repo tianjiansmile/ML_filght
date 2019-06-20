@@ -165,7 +165,7 @@ if __name__ == '__main__':
     app_list = data['app_list']
     #
     # # 训练模型
-    # app_to_dict(app_list)
+    app_to_dict(app_list)
     #
     # # 预测主题
     dict_to_lda(app_list)

@@ -82,6 +82,12 @@ def label_map(x):
     else:
         return 0
 
+def label_map_pd0(x):
+    if int(x) > 0:
+        return 1
+    else:
+        return 0
+
 def train(trainData, testData, col):
 
     X_train, X_valid, Y_train, Y_valid = model_selection.train_test_split(np.array(trainData[col]),
@@ -112,7 +118,7 @@ def train(trainData, testData, col):
 
 
 def miaola_app():
-    allData = pd.read_excel('add_topics50.xlsx', sheetname='sheet1')
+    allData = pd.read_excel('3410/add_topics50.xlsx', sheetname='sheet1')
 
     # 暂时删除有空数据的行
     allData.dropna(axis=0, how='any', inplace=True)
@@ -135,13 +141,13 @@ def miaola_app():
 
 def miaola_addr():
     # allData = pd.read_excel('../address/秒啦首贷_train_pd10.xlsx', sheetname='Sheet1')
-    allData = pd.read_excel('../address/approve_addr_feature_pd10.xlsx', sheetname='Sheet1')
+    allData = pd.read_excel('addr_lda_feature.xlsx', sheetname='Sheet1')
 
     # 暂时删除有空数据的行
     allData.dropna(axis=0, how='any', inplace=True)
 
     # 将不参与训练的特征数据删除
-    allData.drop(['live_addr'], axis=1, inplace=True)
+    allData.drop(['addr'], axis=1, inplace=True)
 
     # 确保二分类
     allData['overdue_days'] = allData['overdue_days'].map(label_map)

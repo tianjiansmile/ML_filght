@@ -8,6 +8,12 @@ from com.graph.gcn.tensorflow import layers as lg
 from com.graph.gcn.tensorflow import utils as us
 from sklearn.manifold import TSNE
 
+# 本脚本主要实现，GCN，通过对karate数据的图卷积操作，衍生出节点的特征
+# 邻接矩阵：A， 特征数据: X  单位矩阵：I  度矩阵：D
+# 从数学上看 A*X就可以聚合当前节点的一阶领域节点的特征和，
+# (A+I)*X可以聚合自身节点以及邻居节点的特征，
+# D**-1*A*X 可以将特征归一化，这一步参考拉普拉斯矩阵分解
+
 def gcn():
     g = nx.read_edgelist('karate.edgelist', nodetype=int, create_using=nx.Graph())
 
@@ -19,6 +25,7 @@ def gcn():
     # 得到具有自环的邻接矩阵 A_hat
     adj_tilde = adj + np.identity(n=n_nodes)
     # print(adj_tilde)
+
     # 构造度矩阵 D_hat 用于聚合每一个节点的邻居以及自己的特征
     d_tilde_diag = np.squeeze(np.sum(np.array(adj_tilde), axis=1))
 
@@ -115,8 +122,11 @@ def plot_embedding(X, nodes, labels):
     plt.show()
 
 if __name__ == '__main__':
+    # 预训练
     outputs, labels, nodes = gcn()
     nodes = node_id(nodes)
+    # 降维
     emb = emb_reduction(outputs)
     print(emb)
+    # 可视化
     plot_embedding(emb, nodes, labels)

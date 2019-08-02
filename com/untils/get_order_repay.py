@@ -70,6 +70,51 @@ def check_overdueday(repay_state,repay_date,actual_date):
         overdureday = 0
     return overdureday
 
+def check_overdueday(repay_state,repay_date,actual_date,merchant_id):
+
+    overdureday = None
+    niwodai = 4
+
+    # 获取当前日期
+    now_date = datetime.datetime.now().date()
+
+    repays_date = repay_date.date()
+
+    if repay_state == '2': #还款标志
+        if actual_date:
+
+            actuals_date = actual_date.date()
+            overdureday = (actuals_date - repays_date).days
+            if overdureday == 1:
+                if merchant_id == '11':
+                    hour = actual_date.hour
+                    if hour < niwodai:
+                        overdureday = 0
+                    print('你我贷：', hour)
+
+
+        else:
+            overdureday = (now_date - repays_date).days
+            if overdureday == 1:
+                if merchant_id == '11':
+                    hour = now_date.hour
+                    if hour < niwodai:
+                        overdureday = 0
+                    print('你我贷：', hour)
+    else:
+        overdureday = (now_date - repays_date).days
+        if overdureday == 1:
+            if merchant_id == '11':
+                hour = now_date.hour
+                if hour < niwodai:
+                    overdureday = 0
+                print('你我贷：',hour)
+
+    # print('overdureday',overdureday)
+    if overdureday < 0:
+        overdureday = 0
+    return overdureday
+
 # loan_number 分期orpdl merchant_id 机构号
 def get_order_label(loan_number=1,merchant_id=None):
     # 这个时间组件不能跨月遍历

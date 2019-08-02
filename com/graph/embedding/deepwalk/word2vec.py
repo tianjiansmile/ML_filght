@@ -195,7 +195,7 @@ if __name__ == '__main__':
 
     # plot_label_embeddings(features, nodes, label)
 
-    # plot_embeddings(features, nodes)
+    plot_embeddings(features, nodes)
 
     # plot_label_embeddings_3D(features, nodes, label)
 

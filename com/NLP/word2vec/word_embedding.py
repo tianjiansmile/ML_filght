@@ -21,7 +21,7 @@ def jieba_split(text):
     seg_list = jieba.cut(''.join(re.findall('[\u4e00-\u9fa5]+', text)))
     # print(u"[精确模式]: ", "/ ".join(seg_list))
 
-    seg_list = list(seg_list)
+    seg_list = list(seg_list)[0]
 
     return seg_list
 
@@ -87,7 +87,7 @@ def get_embeddings(live_addr,merchant_id):
                 sentence = jieba_split(docu)
                 embd = []
                 for word in sentence:
-                    embd.append(model.wv[word])
+                    embd = model.wv[word]
                 node.add(docu)
                 features[docu] = embd
 

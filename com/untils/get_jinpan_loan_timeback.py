@@ -82,7 +82,7 @@ def get_value(file):
 # 根据身份证号码获取107条特征，并转换成list输出
 def get_response(idNum,currDate):
     all_dic={}
-    url='http://127.0.0.1:5000/getEncyUserFeaturesTest?identityNo=%s&currDate=%s'
+    url='http://127.0.0.1:5000/getJinpanLoanFeatures?identityNo=%s'
     res=requests.get(url % (idNum,currDate))
     if res.status_code==200:
         all_list=[]

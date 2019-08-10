@@ -238,5 +238,7 @@ if __name__ == '__main__':
     # 困惑度
     perplexity_check(app_list)
 
+
+
     endtime = time.time()
     print(' cost time: ', endtime - starttime)

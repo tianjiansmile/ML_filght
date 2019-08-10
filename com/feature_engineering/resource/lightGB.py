@@ -45,7 +45,7 @@ def getAUC(model, model_column, dfTrain_X, y_train, dfTest_X, y_test, dfTime_X):
     data_predict_1test = model.predict(dfTest_X.astype("float"))
     test_auc = roc_auc_score(y_test.astype("int"), data_predict_1test)
     data_predict_1time = model.predict(np.array(dfTime_X[model_column].astype("float")))
-    time_auc = roc_auc_score(dfTime_X.overdue_days.astype("int"), data_predict_1time)
+    time_auc = roc_auc_score(dfTime_X.overdueday.astype("int"), data_predict_1time)
     print("训练上的auc：%f \n验证集上的auc：%f \n测试集上的auc：%f "%(train_auc, test_auc, time_auc))
 
 def compute_ks(model, model_column, dfTrain_X, y_train, dfTest_X, y_test, dfTime_X):
@@ -91,7 +91,7 @@ def label_map_pd0(x):
 def train(trainData, testData, col):
 
     X_train, X_valid, Y_train, Y_valid = model_selection.train_test_split(np.array(trainData[col]),
-                                                                          trainData['overdue_days'].values,
+                                                                          trainData['overdueday'].values,
                                                                           test_size=0.20,
                                                                           random_state=123)
 
@@ -167,37 +167,45 @@ def miaola_addr():
 
 
 def jinpan_feature():
-    allData = pd.read_excel('../new_approve_feature _clean1.xlsx', sheetname='sheet1')
+    addrData = pd.read_excel('data/pdl_resource_value.txt', sheetname='Sheet1')
+    addrData.drop(['overdue_days', 'addr'],axis=1, inplace=True)
+
+    allData = pd.read_csv('data/3410_value.txt')
+
+    # 横向合并数据集
+    allData = pd.concat([addrData,allData],axis=1)
+
+    print(allData.shape)
 
     # 暂时删除有空数据的行
     allData.dropna(axis=0, how='any', inplace=True)
 
     # 确保二分类
-    allData['overdue_days'] = allData['maxOverdue_sum_label'].map(label_map)
+    allData['overdueday'] = allData['overdueday'].map(label_map)
 
     # 将不参与训练的特征数据删除
-    allData.drop(['apply_pdl_label','apply_int_label','apply_sum_label',
-                  'approve_pdl_label','approve_int_label','approve_sum_label',
-                  'overdue_pdl_label','overdue_int_label','overdue_sum_label',
-                  'maxOverdue_pdl_label','maxOverdue_int_label','maxOverdue_sum_label'], axis=1, inplace=True)
+    # allData.drop(['apply_pdl_label','apply_int_label','apply_sum_label',
+    #               'approve_pdl_label','approve_int_label','approve_sum_label',
+    #               'overdue_pdl_label','overdue_int_label','overdue_sum_label',
+    #               'maxOverdue_pdl_label','maxOverdue_int_label','maxOverdue_sum_label'], axis=1, inplace=True)
 
 
     cat_features = [cont for cont in list(allData.select_dtypes(
-        include=['float64', 'int64']).columns) if cont != 'overdue_days']
+        include=['float64', 'int64']).columns) if cont != 'overdueday']
 
     trainData, testData = train_test_split(allData, test_size=0.23,random_state=43)
 
-    train_rate = trainData.overdue_days.sum() / trainData.shape[0]
-    test_rate = testData.overdue_days.sum() / testData.shape[0]
+    train_rate = trainData.overdueday.sum() / trainData.shape[0]
+    test_rate = testData.overdueday.sum() / testData.shape[0]
 
     print('train_rate: ',train_rate,' test_rate: ',test_rate)
 
     # 训练
     train(trainData, testData, cat_features)
 if __name__ == '__main__':
-    miaola_app()
+    # miaola_app()
 
     # miaola_addr()
 
     # 评估金盘基础特征
-    # jinpan_feature()
+    jinpan_feature()

@@ -1,6 +1,8 @@
 
 import datetime
 
+# 解析身份证获得性别和年龄
+
 class GetInformation(object):
 
     def __init__(self, id):

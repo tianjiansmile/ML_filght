@@ -23,13 +23,65 @@ network
 	embedding无监督分类，检测高密子图
 	gcn使用
 	
+	紧急联系人数据挖掘
+	1  对于个人紧急联系人历史数据，可以即时建立一个由电话号码，电话名称，电话关系组成的小网络，可以实现不一致校验，也可以衍生很多特征
+
+	2 对于全量紧急联系人数据，可以建立一个由电话，姓名，关系组成的异构网络，同样可以识别一些欺诈，也可以衍生一些特征
+
+	3 讲紧急联系人网络折叠可以进入用户同构网络，做强关联补充，增强同构网络的表征能力
+	
 feature
    jinpan 特征标准化
    时间维度运营商特征开发
    CNN特征衍生
+----------------------------------------------------------------------------------   
+20190701 
+1 迁移历史特征到评分卡模型，重新设计历史特征
 
+ 1住址变换指标，设备变换，公司变换，紧急联系人变化
 
+ 2申请时间指标：集中度，分散度，
+   前后订单的申请时间间隔的平均值以及方差
+   将时间间隔分类，并统计各个分类占比，一天，一小时，一分钟之内的申请次数
+   
+   
+ 3机构迁移指标
 
+ 4历史借贷指标
+	1 monthly: 按月维度
+	2 dayily：按一天的时间将订单分为不同类别
+	3 weekly： 将订单分为周末非周末
+	  分别：apply approve reject,pd0,pd7,pd14,loan_amount,max_overdue,avg_overdue
+	  
+	对于分期来说：首逾，连续逾期的情况要体现出来
+	对于逾期的计算： 分为通过逾期，通过不逾期，无通过无逾期：-3
+	
+	申请订单序列，体现连续情况，连续通过，连续拒绝，
+	
+ 5 近期其他机构的申请申请情况
+ 
+ 6 住址，公司，手机号，设备，紧急联系人稳定性指标
+    1对于住址，公司名称，公司地址，分别统计不重复地址个数，真实地址个数及其占比
+	2对于紧急联系人历史数据，主要统计
+	     1 不同电话号码下的联系人姓名，关系个数，期望，方差，众数的常用指标
+		 2 不同姓名下的电话号码个数，期望，方差，众数的常用指标，这个主要为观察紧急联系人的电话号码变动情况
+		 4 紧急联系人关系的不一致校验，对同一人的称呼存在的矛盾进行观测，比如{'18065373997': {'父亲', '朋友', '父母', '直亲', '母亲'}
+		   即是父亲又是母亲这种明显的矛盾
+	     3 通过观察时间序列上的紧急联系人数据，比对前后两次申请的紧急联系人数据的变化情况，挖掘指标来量化这种变化情况
+ 
+ 7 社交网络特征
+   所有个人特征，都可以衍生到一度或多度联系人上面，这里主要分两个方向
+   1,一度联系人的历史借贷特征
+   2 一度联系人图卷积聚合特征
+   3 从个人用户的其他有效特征拓展到一度联系人的特征上面
+       目前：近60天内被叫duration超过1，2，3分钟，10秒的count占比
+	         mobile_use_days等等，也就是可以把当前节点和周围节点的运营商，以及其他连七八糟的只要是有用的特征用图卷积的方式聚合起来就行
+     
+	
+
+2 迭代金盘feature特征，并加入社交网络共用号码的命中情况
+
+--------------------------------------------------------------------------------
 
 model
   1 秒啦首贷模型
@@ -86,9 +138,129 @@ model
 					 
 	   
 	
+	
+model2
+    嘉卡模型： 原模型：1,运营商模型， 2 运营商+新颜
+	           新模型：运营商+新颜+jinpan2.0+新运营商+第三方+文本特征    对照组：运营商+新颜
+	数据：嘉卡全量，去年到今年6月份21w数据
+			   
+			内容：1 获取标签以及原始数据21w
+			      2 获得老特征
+				  3 获得新特征
+				      jinpan特征获取：通过外部订单号获得金盘对应的订单时间以及其idnum，然后通过时间回溯接口跑出对应特征
+					  extend_info特征：5700维，主要内容
+					        
+				  4 训练模型，对比结果
+	
 	使用更多模型在金盘特征上面，xgb，gbdt，lightGBM等等
 	运营商特征上尝试使用无监督分类方法
 	
+	
+extend_info特征：5700维，主要内容盘点
+	运营商报告特征 
+	 1 运营商报告通话特征 'cell_operator_zh'：运营商中文名称, 'net_flow'：流量, 'call_out_time'：呼出时长, 'cell_operator'：：运营商名称, 
+	                 'call_in_cnt'：呼入次数, 'cell_phone_num'：电话号码,
+                     'sms_cnt'：短信次数, 'cell_loc'：电话归属地, 'call_cnt'：通话次数, 'total_amount', 'call_out_cnt'：呼出次数, 'call_in_time'：呼入时长
+		
+	  去过去6个月，按每个月统计，总计 72维
+	  文本类特征：cell_operator_zh，cell_operator，cell_phone_num，cell_loc
+	  
+	 2  运营商报告审查  court_blacklist：法院黑名单 ，financial_blacklist：金融黑名单 ，website：号码归属地 ，check_idcard：与运营商身份证是否匹配，reliability：是否实名认证，
+	                    diff_reg_time：前后审查时间间隔，check_name：与运营商姓名是否匹配，webcheck_ebusinesssite：是否被网络审查，ls3_operator_addr：运营商联系地址
+		共20多维				
+		website ，check_idcard，check_name，reliability，webcheck_ebusinesssite，ls3_operator_addr
+		
+	 3 运营商行为特征 20多维 全为数字类特征
+	 
+	 4 运营商通讯录特征 
+	            'contact_name', 'needs_type',
+                'contact_all_day', 'contact_early_morning', 'contact_morning', 'contact_noon',
+                'contact_afternoon', 'contact_night',
+                'call_in_len', 'call_out_len', 'call_len',
+                'call_in_cnt', 'call_out_cnt', 'call_cnt',
+                'contact_1w', 'contact_1m', 'contact_3m', 'contact_3m_plus',
+                'phone_num', 'phone_num_loc', 'p_relation',
+                'contact_weekday', 'contact_weekend',  'contact_holiday'
+				
+	    去各个维度序列的常规统计指标：最大值，最小值，均值，中位数，众数，方差，总和,共几百维
+		needs_type和不同行业的联系情况做one-hot几十维，
+		ratioOfCnt_needsType和不同行业的联系情况比率做one-hot几十维
+		cnt_phoneNumLoc 和不同地区联系情况one-hot，百维左右
+		ratioOfCnt_phoneNumLoc和不同地区联系比率情况one-hot，百维左右
+		
+	5 运营商报告main_service  
+		'total_service_cnt'：总体联系情况 最大值，最小值，均值，中位数，众数，方差，总和,共几百维
+		 company_type：和不同类型公司联系情况one-hot
+		 ratio_company_type
+		'company_name'：和不同类型公司联系情况比率one-hot
+	
+	6 运营商通讯录地区特征
+	   'region_avg_call_out_time', 'region_call_in_time_pct', 'region_call_out_cnt_pct',
+                'region_call_out_time_pct', 'region_call_in_time', 'region_avg_call_in_time', 'region_call_in_cnt_pct',
+                'region_call_out_time', 'region_call_out_cnt', 'region_call_in_cnt', 'region_uniq_num_cnt'
+		对不同地区的上述指标分别做one-hot，2千维数据
+		
+	7 运营商报告出行特征  tripInfo
+	  u'双休日', u'节假日', u'工作日'出行次数，比率，总出现次数
+	  trip_diff_time：出行时间差值序列的常规统计指标
+	  
+	8 用户身份审查 userInfoCheck
+	                'phone_with_other_idcards', 'phone_with_other_names', 'register_org_cnt', 'arised_open_web',
+                    'searched_org_cnt', 'idcard_with_other_phones', 'searched_org_type', 'register_org_type',
+                    'idcard_with_other_names'
+					
+	9 第三方分属 score
+	
+	10 探知数据
+	   'refInfos', 中间有多项离散单项字母
+	   'platform_Infos'： 几十维 数字类
+	   'eveSums' 数字类
+	   mb_infos：几百维左右，中间有多项离散单项字母
+	   
+	11 tongdundata数据
+	rulesDetail: 数字类
+	policySet 离散文本，其中有一些特征的数据中可能包含敏感字符比如 EI_tongdundata_policySet_pname欺诈行为_网站_riskType EI_tongdundata_risk_type 含有,
+	hitRules：数字类
+	
+	EI_tongdundata_final_decision：文本
+	
+	12 tongdunguarddata
+	全部数字
+	
+	
+	最终统计结果： 518左右的文本类特征 
+	              其中 EI_nifadata_loanamt，EI_score_友盟分 假文本类，由于存在None值故错分类
+				       EI_sar_appcheck_ls1_court_blacklist，EI_sar_appcheck_ls1_financial_blacklist ，
+					   EI_sar_appcheck_ls2_financial_blacklist ： boolean 类型 FALSE TURE
+					   
+					   EI_tongdundata_final_decision    Review  Accept
+				   
+					   mb_infos level 400多个特征 全部为离散文本类：A,B,C,D,E
+					   refInfos level 20 多个特征 全部为离散文本类：A,B,C,D,E
+					   
+					   tongdundata_policySet_pname 56个  全部为离散文本类 其中有一些特征的数据中可能包含敏感字符
+					   
+					   
+	入模特征6272维  样本量和特征量的比值一般维持在10:1左右，如果样本量过少时，大量的onehot稀疏特征会影响模型效果，不如不要，
+	                当样本量比较充分时20:1，可以加入onehot特征试试
+	
+	观测到的一些调参情况：主要调整参数  learning_rate，max_depth
+	    1 当特征维度较高时，树深度越深训练集收敛越快，模型越容易过拟合，表现就是train很快到顶，验证集表现却非常差
+		     一般的经验是深度从低到高去调  max_depth：2--10， 但是当样本数量比较大时，这些参数变得不太敏感了
+			
+		2 learning_rate 一般取值 0.001 当数据量较大时可以先适当扩大步长
+		
+		3 train_test_split 随机种子：random_state ：None 每一次拆分数据都是随机的，如果指定参数，每一次拆分都是固定的，这样有利于研究其他参数的调优
+	
+	模型训练结果： 样本 (191689, 2826)  
+	
+	
+					   
+
+	
+
+	 
+	  
 data
     金盘数据迁移至TiDB
 	

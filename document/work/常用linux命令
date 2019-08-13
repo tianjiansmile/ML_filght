@@ -1,0 +1,40 @@
+统计文件行数
+awk '{print NR}' test1.txt | tail -n1
+
+查看某一端口占用情况
+netstat  -anp  |grep   端口号
+
+查看所有端口占用情况
+netstat   -nultp
+
+测试端口是否可访问
+telnet 139.196.75.48 8066
+
+服务器之间传输文件
+scp   ./util   用户名@192.168.1.65:/home/wwwroot/limesurvey_back/scp 
+scp EXTEND_INFO_G2_FEATURE.json model-test@172.19.133.30:/restore/working/panjin/calc_extend_info_feature
+
+查看所有python的路径，不止一个
+whereis python 
+
+脚本后台执行
+nohup python calc_extend_info_feature.py > process.log 2>&1 &
+
+监控进程
+ps -ef | grep 7581
+
+查询某一个关键字出现的次数
+grep -o objStr  filename|wc -l
+
+cat filename|grep "keyword" -C 30
+
+查看当前路径下文件的详细信息
+ll -h
+
+压缩文件
+gzip FileName .tar.gz
+tar zcvf FileName.tar.gz DirName
+
+解压
+gzip -d FileName.gz
+tar zxvf FileName.tar.gz

@@ -251,8 +251,18 @@ extend_info特征：5700维，主要内容盘点
 		2 learning_rate 一般取值 0.001 当数据量较大时可以先适当扩大步长
 		
 		3 train_test_split 随机种子：random_state ：None 每一次拆分数据都是随机的，如果指定参数，每一次拆分都是固定的，这样有利于研究其他参数的调优
+		
+		4 数据集划分，train val test, oot 由于test 和train val可能是同分布的所以，观测的test效果下跌不多，oot上面下跌较多，可能数据分布不同
+		
+		5 train val 训练过程中取val最优者，这样的策略存在随机性，模型效果不一定是最好的 
+		
+		6 特征命名问题，不同数据源开发的特征最好可以在特征命名时加一个标志，比如extend_info特征 前面加EI，
+		  这样当我们拿到全量的特征之后就可以很好的控制入模变量，从而评估不同特征的表现
 	
-	模型训练结果： 样本 (191689, 2826)  
+	模型训练结果： 样本 (191689, 2826)  oot取3月以后数据大概2w多  EI入模特征大概500维
+	    入模特征：EI No tongdunguard，rule , mb_infos, jinpan全量，live_addr
+		          oot AUC: 0.642  oot KS: 0.21
+		加入jinpan以及addr特征大概有两个点的提升
 	
 	
 					   

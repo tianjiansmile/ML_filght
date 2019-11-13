@@ -170,7 +170,7 @@ if __name__ == '__main__':
     # comm_list = label_to_file(beer)
 
     # # 折线图查看每一维度分布
-    # # plot_check(df)
+    # plot_check(df)
     #
     # # 降维
     # # plot_embeddings(feature_pool,nodes)

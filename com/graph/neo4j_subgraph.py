@@ -97,10 +97,10 @@ if __name__ == '__main__':
     cypher_read = "match path = (p:person)-[a]-(q:person) where p.community='" + comm + "' and q.community='" + comm + "' " \
                    " return p.nid as sid,q.nid as tid,type(a) as rel,a.call_len as " \
                    " call_len, a.time as times"
-    # data = my_neo4j.cypherexecuter(cypher_read)
+    data = my_neo4j.cypherexecuter(cypher_read)
     #
-    # filename = 'community_detection/data/'+comm+'edgelist.txt'
-    # neo4j_to_file(filename, data)
+    filename = 'community_detection/data/'+comm+'edgelist.txt'
+    neo4j_to_file(filename, data)
 
     # 对网络中的社区进行简单统计分析
     # comm_count(my_neo4j)

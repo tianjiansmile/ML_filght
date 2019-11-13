@@ -177,6 +177,7 @@ def write_node_file(ency_ids,node):
                 nwf.write(item + ','+str(ency_ids.get(item))+',-1,-1,-1,-1,-1,-1,-1,0,person' + '\n')
 
     print('updated:',count)
+
 # 批量更新节点属性
 def batch_update(my_neo4j,batch_list,batch_size):
     if len(batch_list) >0:
@@ -229,10 +230,12 @@ def batch_update_test(my_neo4j):
                              "n.overdue = row.overdue, n.loanamount = row.loanamount," \
                              "n.max_overdue = row.max_overdue"
 
-    my_neo4j.cypherexecuter_param(merge,batch)
+    print(merge)
 
-
-    my_neo4j.cypherexecuter_param(merge,batch)
+    # my_neo4j.cypherexecuter_param(merge,batch)
+    #
+    #
+    # my_neo4j.cypherexecuter_param(merge,batch)
 if __name__ == "__main__":
     from com.NLP.jieba import jieba_test
     uri = "bolt://localhost:7687"
@@ -240,25 +243,25 @@ if __name__ == "__main__":
 
     my_neo4j = Neo4jHandler(driver)
 
-    # batch_update_test(my_neo4j)
+    batch_update_test(my_neo4j)
 
     # write_csv_neo4j(my_neo4j)
 
     # 1从文件读入历史借贷表现数据
-    history_dict = jieba_test.order_dict()
-    print('读入历史数据完毕',len(history_dict))
+    # history_dict = jieba_test.order_dict()
+    # print('读入历史数据完毕',len(history_dict))
 
     # 2 读入网络节点
-    ency_ids = his_loan_to_neo4j(my_neo4j)
-    print('读入网络数据完毕', len(ency_ids))
+    # ency_ids = his_loan_to_neo4j(my_neo4j)
+    # print('读入网络数据完毕', len(ency_ids))
 
     # 3 开始更新
     # update_network(my_neo4j,history_dict,ency_ids)
 
 
     # 将更新节点重新写入
-    print('开始撞数据')
-    node = update_network_to_file(my_neo4j,history_dict,ency_ids)
-    print('开始更新')
-    write_node_file(ency_ids, node)
+    # print('开始撞数据')
+    # node = update_network_to_file(my_neo4j,history_dict,ency_ids)
+    # print('开始更新')
+    # write_node_file(ency_ids, node)
     # print(my_neo4j)

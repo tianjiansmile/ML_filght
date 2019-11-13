@@ -1,11 +1,15 @@
 统计文件行数
 awk '{print NR}' test1.txt | tail -n1
+wc -l filename
+
+统计文件个数
+ls -lR|grep "^-"|wc -l
 
 查看某一端口占用情况
 netstat  -anp  |grep   端口号
 
 查看所有端口占用情况
-netstat   -nultp
+8
 
 测试端口是否可访问
 telnet 139.196.75.48 8066
@@ -13,12 +17,19 @@ telnet 139.196.75.48 8066
 服务器之间传输文件
 scp   ./util   用户名@192.168.1.65:/home/wwwroot/limesurvey_back/scp 
 scp EXTEND_INFO_G2_FEATURE.json model-test@172.19.133.30:/restore/working/panjin/calc_extend_info_feature
+服务器之间传输文件夹
+scp -r tmp_jk_0608/ model-test@172.19.133.30:/restore/working/tianjian/data/jiaka/report
+
+nohup sudo scp -r 03/ model-test@172.19.133.30:/restore/working/tianjian/network/report > p.log 2>&1 &
+
 
 查看所有python的路径，不止一个
 whereis python 
 
 脚本后台执行
 nohup python calc_extend_info_feature.py > process.log 2>&1 &
+
+nohup python3 generate_network_rel_mutl_thread.py > process2.log 2>&1 &
 
 监控进程
 ps -ef | grep 7581
@@ -38,3 +49,18 @@ tar zcvf FileName.tar.gz DirName
 解压
 gzip -d FileName.gz
 tar zxvf FileName.tar.gz
+unzip filename.zip
+
+解压目录下所有文件
+find . -name '*.gz' -exec gunzip {} \;
+
+压缩目录
+tar -zcvf xahot.tar.gz /xahot
+
+6.重新启动服务 sudo teamviewer --daemon start
+7.获取id并设置密码 teamviewer --info print id 
+
+清空日志
+echo > log.txt
+
+

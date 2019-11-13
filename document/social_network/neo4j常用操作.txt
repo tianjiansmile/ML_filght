@@ -14,6 +14,9 @@ https://blog.csdn.net/m0_37565948/article/details/81133041
 	
 2，Python操作Neo4j的基本操作  https://blog.csdn.net/wmh13262227870/article/details/77842513		
 
+cypher 常用操作
+https://www.cnblogs.com/jstarseven/p/9546602.html
+
 反欺诈知识图谱总结
 
 	1.构建
@@ -167,8 +170,11 @@ match (p:Person {name:"Laurence Fishburne"})-[rel:ACTED_IN]->(m: Movie {title:"T
 
 Neo4j常用操作
 
-启动Neo4j
+启动Neo4j  window
 D:\Program Files (x86)\neo4j-community-3.2\bin   进入其bin目录， 输入 neo4j.bat console
+
+linux
+./neo4j start
 
 访问 http://localhost:7474/browser/
 

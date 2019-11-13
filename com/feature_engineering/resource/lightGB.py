@@ -167,12 +167,12 @@ def miaola_addr():
 
 
 def jinpan_feature():
-    addrData = pd.read_excel('data/pdl_resource_value.txt', sheetname='Sheet1')
+    addrData = pd.read_excel('data/3410addr_feature.xlsx', sheetname='Sheet1')
     addrData.drop(['overdue_days', 'addr'],axis=1, inplace=True)
 
     allData = pd.read_csv('data/3410_value.txt')
 
-    # 横向合并数据集
+    #
     allData = pd.concat([addrData,allData],axis=1)
 
     print(allData.shape)

@@ -191,8 +191,8 @@
   
   
   导出为Graphml文件
-  call apoc.export.graphml.query('match path = (pe:phone)-[r]->(p:phone)<-[rel]->(t:phone) return pe,r,p,rel,t',
-  'C:/Users/Administrator/Desktop/exportAll4.graphml',{useTypes:true})
+  call apoc.export.graphml.query('match (p:person)-[r]-(q:person) where p.community1=1290652 and q.community1=1290652 return p,r,q',
+  'C:/Users/Administrator/Desktop/gaomi.graphml',{useTypes:true})
   
     call apoc.export.graphml.query("match path = (p:person)-[a]-(q:person)-[b]-(r:person) where p.is_black='1' or q.is_black='1' or r.is_black='1' return p,a,q,b,r",
   'C:/Users/Administrator/Desktop/black.graphml',{useTypes:true})
@@ -238,6 +238,11 @@
 				call apoc.gephi.add(null,'test', paths,'times',['nid']) yield nodes, relationships, time
 				return nodes, relationships, time
 				
+	两个节点最短路径		
+	MATCH p=shortestPath(
+            (bacon:person {nid:"00011a11c626fbda93d15348de6290f1"})-[*]-(meg:person {nid:"1dd25cb6d6dcd62904942414b96c93a9"})
+     )RETURN p
+				
 	2 网络涉黑标记
 	  1 强标记 催收黑名单
 	  2 弱标记 逾期黑名单 pd1,pd3,pd7,M1
@@ -258,6 +263,10 @@
 		 # 通过标签传播算法分区  neo4j可以实现
 		  CALL algo.labelPropagation('person', 'call','BOTH',
 		  {iterations:10,partitionProperty:'community', write:true})
+		YIELD nodes, iterations, loadMillis, computeMillis, writeMillis, write, partitionProperty;
+		
+		CALL algo.labelPropagation('person', 'connected','BOTH',
+		  {iterations:10,partitionProperty:'community1', write:true})
 		YIELD nodes, iterations, loadMillis, computeMillis, writeMillis, write, partitionProperty;
 		
 		社区总数： 2298889 社区人数大于10： 96147   社区人数大于100：c_100 5757
@@ -349,6 +358,13 @@
 			这些特征现有的接口就可以提供，社团内的其他节点或是一阶相邻节点的申请，通过，拒绝，逾期，放款量这些特征都可以访问接口实现
 			2 团本身的特性，比方说节点数、团内用户的连接紧密程度等，还有其他一些节点度量数据。
 			团内用户的属性，比方说团内的女性人数、地区分布、平均借款额度，申请次数等。一般而言，团内女性人数占比越大，团内用户是“好人”的概率就越大。
+			
+		  改进的点： 同构网络中应该将用户的创建时间写入用户节点，这样做的意义是，通过某一节点查询一度二度联系人时有时间回溯的概念在里面
+		             就是说，当我们用于线下训练时，我们获取当前节点的一度联系人应该去找到当前节点入库时间节点之前的其他邻居节点，
+					 而不是所有节点，因为有可能其中一些节点是在这个用户之后入库的，从时间回溯的角度看，这个人此时是不存在的
+		  只要有了用户的基础特征大概几千维左右，那么根据一度二度联系人，可以衍生出同样维度的网络特征
+		  比如根据当前订单查到了该用户，我们只需要携带该订单的创建时间，去网络中寻找其他节点的所有订单，然后拿到其他用户在这个创建时间之前的订单
+		  通过这些订单可以去特征库中查到社交网络中其他用户的基础特征，然后就可以做处理，比如聚合等等
 		  
 	  
 	6 网络定时更新
@@ -381,6 +397,12 @@
 	用neo4-import导入，需要将导入节点和关系先写成csv文件，然后快速导入
 	先关闭neo4j，删除graph.db，然后进入cmd，转入bin目录
 	执行 neo4j-admin import --nodes D:\Develop\test\neo4j_data\user_whole\nodes.csv --relationships D:\Develop\test\neo4j_data\user_whole\rels.csv
+	    neo4j-admin import --nodes D:/develop/data/network/whole_data/node_all.csv --relationships D:/develop/data/network/whole_data/rel_all2.csv
+		
+    如果出现导入错误，输入neo4j-admin import 会提示解决办法，主要看--ignore
+	--ignore-extra-columns
+	--ignore-missing-nodes
+	--ignore-duplicate-nodes
 	  
 	  
 反欺诈同构网络
@@ -398,3 +420,32 @@ CALL algo.pageRank(
   'MATCH (p1:person)-[rel]-(p2:person) where p1.partition=372809 and p2.partition=372809 RETURN id(p1) as source, id(p2) as target',
   {graph:'cypher', iterations:5, write: true}
 )
+
+社交网络是基于平台自有数据，对用户之间潜在的关联关系进行挖掘，对用户关联关系进行网络建模，从而形成的有一定规模的无标度的复杂网络。
+社交网络主要作用有两大块。第一进行反欺诈识别，第二进行网络特征输出。
+这里主要讨论网络的构建方法与网络特征的输出。
+
+网络构建方案：
+业内主流的网络构建方案为利用用户通话记录，通讯录，紧急联系人等数据，以通话，通讯录，互为紧急联系人为关联关系构建，以电话，用户等实体作为网络节点来构建社交网络。比较知名的如聚信立，拍拍贷等公司。
+社交网络用作特征输出，需要满足的一个必要条件就是，网络要足够稠密，如果网络关系过于稀疏，那么网络特征的命中率就会大大降低，遂失去了入模的意义。网络结构必须足够精简，设想将用户通话记录，通讯录中电话作为网络节点，那么网络规模将是百亿级别的节点，网络由于引入过多干扰信息，变得臃肿不堪，网络的维护成本以及网络变量输出的难度加大，猛犸反欺诈通过对网络节点的折叠实现结构简化，但是其他一些公司主要以反欺诈为主要的应用目的。
+我们的社交网络的构建思路与其他公司不同的地方在于利用公司积累的大量用户数据挖掘信贷用户之间的关联关系。
+1.统一网络节点以及关系类型，这样做的目的是，有利于网络特征输出。有利于高阶图算法的开展，异构网络的图挖掘是业内难题。
+2.精简通话通讯录关系，只保留本平台用户关联数据，其结果直接导致网络规模降低，维护挖掘成本降低，从最终结果看，网络仍然是稠密的，满足特征挖掘的条件。
+
+网络数据存储方案
+业内较为流行的图数据库为neo4j，社区版免费使用，支持百亿级别的网络规模。其优点是查询速度快，可以较好的支持实时网络数据查询，有一定的可视化插件支持，有一定的图算法插件支持，但是由于业务的特异性，内嵌算法很难进行应用，需要二次开发，本次产品的选用是neo4j。
+
+网络数据挖掘
+1.网络结构方向
+    度统计
+环检测
+    社区检测(louvain,图表示学习，图神经网络)
+  
+2.网络节点方向
+   1初级挖掘
+    一阶，二阶，社团群体画像，包括性别，年龄，地址，职业等等画像特征，从社会面貌，经济水平，贷后表现等层面刻画群体用户。
+   2进阶挖掘
+    利用图表示学习，GCN等前沿算法探索网络结构，对群体特征进行高阶传播和衍生。
+     
+3.结构与节点
+   利用关系权重对群体进行分层，利用权重对特征进行衍生。

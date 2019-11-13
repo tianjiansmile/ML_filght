@@ -108,7 +108,8 @@ def map_label(x):
 def box_split(train):
 
     cat_features = [cont for cont in list(train.select_dtypes(
-        include=['float64', 'int64']).columns) if cont not in ['idNum,y']]
+        include=['float64', 'int64']).columns) if cont not in ['idNum,y']
+                    and 'high' not in cont]
 
     # 变量类型超过5
     more_value_features = []
@@ -455,29 +456,29 @@ def approve_predict(file):
 
 def overdue_predict():
 
-    train = pd.read_excel('approve_feature.xls', sheetname='sheet1')
+    # train = pd.read_excel('approve_feature.xls', sheetname='sheet1')
+
+    train = pd.read_csv('jiaka_social_feature_6w.csv')
 
     # data_check(train)
 
     # 删除任何一行有空值的记录
-    train.dropna(axis=0, how='any', inplace=True)
+    # train.dropna(axis=0, how='any', inplace=True)
 
     # 将通过次数转换为0,1标签
     # train['approve_sum_label'] = train['approve_sum_label'].map(map_label)
 
     # 将逾期次数转化为0，1标签
-    train['overdue_sum_label'] = train['overdue_sum_label'].map(map_label)
+    # train['overdue_sum_label'] = train['label'].map(map_label)
 
     # 处理标签：Fully Paid是正常用户；Charged Off是违约用户
-    train['y'] = train['overdue_sum_label']
+    train['y'] = train['label']
 
     print(len(train['y'].unique()))
 
     # 将不参与训练的特征数据删除
-    train.drop(['apply_int_label', 'apply_pdl_label', 'apply_sum_label'
-                   , 'approve_int_label', 'approve_pdl_label', 'approve_sum_label', 'overdue_pdl_label',
-                'overdue_int_label', 'overdue_sum_label', 'maxOverdue_pdl_label',
-                'maxOverdue_int_label', 'maxOverdue_sum_label'], axis=1, inplace=True)
+    train.drop(['order_id', 'create_time', 'loan_no','md5_num' ,
+                'overdue_days', 'label'], axis=1, inplace=True)
 
     box_split(train)
 
@@ -485,10 +486,10 @@ if __name__ == '__main__':
     starttime = time.time()
     # 是否通过预测
     # file = 'feature_pro.xlsx'
-    file = 'feature.xls'
-    approve_predict(file)
+    # file = 'feature.xls'
+    # approve_predict(file)
 
-    # overdue_predict()
+    overdue_predict()
 
     endtime = time.time()
     print(' cost time: ', endtime - starttime)

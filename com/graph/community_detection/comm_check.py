@@ -13,7 +13,7 @@ import seaborn as sns
 import numpy
 import requests
 
-uri = "bolt://localhost:7687"
+uri = "bolt://172.19.133.29:7688"
 driver = GraphDatabase.driver(uri, auth=("neo4j", "123456"))
 
 # 本脚本通过PyLouvain 算法对大社区进行团划分，然后计算团的特征

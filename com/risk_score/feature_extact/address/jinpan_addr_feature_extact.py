@@ -311,7 +311,7 @@ def box_split(train):
     # 最大的VIF是1.32267733123，因此这一步认为没有多重共线性
     multi_analysis = multi_analysis_vars_1
 
-    trainData, testData = train_test_split(train, test_size=0.3)
+    trainData, testData = train_test_split(train, test_size=0.2)
     '''
     第六步：逻辑回归模型。
     要求：
@@ -452,16 +452,15 @@ def overdue_predict(file):
     # train['approve_sum_label'] = train['approve_sum_label'].map(map_label)
 
     # 将逾期次数转化为0，1标签
-    train['overdue_sum_label'] = train['overdue_sum_label'].map(map_label)
+    train['overdue_days'] = train['overdue_days'].map(map_label)
 
     # 处理标签：Fully Paid是正常用户；Charged Off是违约用户
-    train['y'] = train['overdue_sum_label']
+    train['y'] = train['overdue_days']
 
     print(len(train['y'].unique()))
 
     # 将不参与训练的特征数据删除
-    train.drop(['apply_sum_label', 'approve_sum_label',  'overdue_sum_label', 'idnum',
-                'address'], axis=1, inplace=True)
+    train.drop(['addr', 'overdue_days'], axis=1, inplace=True)
 
     # feature_control_drop(train)
     # feature_call_drop(train)
@@ -473,7 +472,7 @@ def overdue_predict(file):
 #
 def overdue_predict1(file):
 
-    train = pd.read_excel(file, sheetname='Sheet1')
+    train = pd.read_excel(file, sheetname='sheet1')
 
     # data_check(train)
 
@@ -489,7 +488,7 @@ def overdue_predict1(file):
     print(len(train['y'].unique()))
 
     # 将不参与训练的特征数据删除
-    train.drop(['live_addr', 'overdue_days'], axis=1, inplace=True)
+    train.drop(['addr', 'overdue_days'], axis=1, inplace=True)
 
     # box_split(train)
 
@@ -514,9 +513,9 @@ if __name__ == '__main__':
 
     # 重新计算了逾期情况 样本量46000，逾期用户8000多，基本为paydayloan
     # file = 'approve_addr_feature_train.xlsx'
-    file = '秒啦首贷_train_pd10.xlsx'
-    # overdue_predict(file)
-    overdue_predict1(file)
+    file = '3410addr_lda_feature.xlsx'
+    overdue_predict(file)
+    # overdue_predict1(file)
 
     # 新的一批样本，全部为通过样本 样本量85000，通过用户64000，为paydayloan
     # file = 'zp_0425_SZZN_payday_feature.xlsx'

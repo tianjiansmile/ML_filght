@@ -7,7 +7,7 @@ import json
 
 # 通过这个文件实现将neo4j的子图转换为networkx可以读入的数据文件
 
-uri = "bolt://localhost:7687"
+uri = "bolt://172.19.133.29:7688"
 driver = GraphDatabase.driver(uri, auth=("neo4j", "123456"))
 
 #  用GraphDatabase访问neo4j

@@ -286,6 +286,15 @@
 			match path = (p:person)-[r]-(q)-[a]-(o)-[b]-(c)-[d]-(e) where p.partition=1061384 WITH path LIMIT 30000 with collect(path) as paths
 				call apoc.gephi.add(null,'test',paths) yield nodes, relationships, time
 				return nodes, relationships, time
+			# 统计
+			match (p:Phone)-[r]-(q) return r.nid,count(r.nid) as c_c order by c_c desc limit 200
+				
+			查看异常社区的每个电话关联的用户人数并降序排列输出
+			match (p:Phone)-[r]-(q) where p.partition = 471749 return p.nid,count(q) as c_c order by c_c desc limit 100
+			
+			查看异常社区的name出现的个数并降序排列输出
+			match (p:Phone)-[r]-(q) where p.partition = 471749 return r.name,count(r.name) as c_c order by c_c desc limit 100
+			match (p:Phone)-[r]-(q) where p.partition = 471749 return r.relation ,count(r.relation) as c_c order by c_c desc limit 100
 				
 		  3 高密子图挖掘
 			群控设备，猫池等等欺诈团体使用的批量身份证和手机号，如果是盗用身份和手机号，这个比较难以检测，如果这些手机号
@@ -403,6 +412,14 @@
 	--ignore-extra-columns
 	--ignore-missing-nodes
 	--ignore-duplicate-nodes
+	
+	--ignore-empty-strings
+	
+	neo4j-admin import --nodes D:/develop/data/network/emer_data/whole_node_pro.csv --relationships D:/develop/data/network/emer_data/whole_rel_clear.csv
+	--ignore-extra-columns
+	--ignore-missing-nodes
+	--ignore-duplicate-nodes
+	    
 	  
 	  
 反欺诈同构网络

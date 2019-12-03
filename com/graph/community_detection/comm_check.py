@@ -534,8 +534,8 @@ if __name__ == '__main__':
     # # plot_check(df)
     #
     # # 降维
-    # # plot_embeddings(feature_pool,nodes)
-    #
+    # plot_embeddings(feature_pool,nodes)
+
     X = df[col_list]
     #
     # # 特征之间的相关性
@@ -558,7 +558,7 @@ if __name__ == '__main__':
     #
     # # 无监督分类
     # X.drop(['id'], axis=1, inplace=True)
-    # kmeans(X,col_list,df)
+    kmeans(X,col_list,df)
 
     endtime = time.time()
     print(' cost time: ', endtime - starttime)

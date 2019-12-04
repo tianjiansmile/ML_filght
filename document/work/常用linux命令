@@ -63,4 +63,7 @@ tar -zcvf xahot.tar.gz /xahot
 清空日志
 echo > log.txt
 
+删除以某后缀结尾的文件
+find . -name '*.txt' -type f -print -exec rm -rf {} \;
+
 

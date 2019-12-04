@@ -1,0 +1,79 @@
+
+1 odps 下载样本标签和征信报告
+create table tmp_jk_0608 LIFECYCLE 1 as 
+select t1.order_id,t1.loan_no,t1.model_type,t1.product_name,sourcechannle,substr(create_time,1,10) as create_time,overdue_days,order_type,
+case when overdue_days>7 then 1 else 0 end as label ,model_flow_name from 
+(select order_id,loan_no,model_id,model_type,product_name,score_group,repay_date,sourcechannle,create_time,order_type,model_flow_name
+from shilupan_dw.dw_slp_order_detail
+where pt=20190821 and product_name in ('嘉卡') and loan_status='1' and order_type='0' and model_id like '%mx%' ) t1 
+inner join 
+(select order_id,overdue_days from shilupan_dw.dw_slp_order_repayment where pt=20190821
+and repay_num='1' and repay_date>='2019-07-24 00:00:00' and repay_date<='2019-08-13 00:00:00') t2
+on t1.order_id=t2.order_id;
+
+2 取新颜缓存数据
+2018 年
+create table tmp_0608_jk_xy_feature LIFECYCLE 1 as 
+select t1.* from 
+(select loan_order_no as order_id,GET_JSON_OBJECT(exec_info,'$.feature') as feature from risk_server.risk_riskorderexecinfo where exec_info like '%behavior_score%' and GET_JSON_OBJECT(GET_JSON_OBJECT(exec_info,'$.field'),'$.is_get_xinyan_data')=1) t1
+inner JOIN 
+(select order_id from tmp_jk where model_type like '%model_xy%') t2 
+on t1.order_id=t2.order_id;
+
+2019年
+-- drop table tmp_0608_jk_xy_feature_int;
+create table tmp_0608_jk_xy_feature_int LIFECYCLE 1 as 
+select t1.* from 
+(select loan_order_no as order_id,GET_JSON_OBJECT(exec_info,'$.feature') as feature from risk_server.risk_riskorderexecinfo_int where exec_info like '%behavior_score%' and GET_JSON_OBJECT(GET_JSON_OBJECT(exec_info,'$.field'),'$.is_get_xinyan_data')=1) t1
+inner JOIN 
+(select order_id from tmp_jk_0608 where model_type like '%model_xy%') t2 
+on t1.order_id=t2.order_id;
+
+下载
+
+
+3 部署新模型
+从最相近模型拉代码下来，将新添加的特征代码加进入
+
+4 计算特征
+  1 xinyan特征单独跑
+  2 其他特征根据部署好的模型测试服务去调用
+      tupan_post_update_4.py 跑出模型分，打印调用时间
+	  sql_get_data_v1.py  修改时间切片，计算全部特征
+	  
+5 训练模型
+  1 分析特征缺失率分布情况，选取最优训练样本，即特征命中率较高，并且命中率分布较为一致的区间作为训练集
+  
+  2 oot数据集一般选取最新10%数据，但是由于业务线模型的不断迭代，一般oot效果的下滑，需要去分析，oot时间段的样本是否和训练数据样本一致，
+    一般导致不一致的原因是由于，oot时间段新模型的上线分流，对通过样本发生了改变，
+	故在开始训练之前务必了解，整体训练样本的对应的模型号，尽量选取同一模型作用的样本作为训练样本
+  
+
+6  特征，分数验证
+   线上线下特征的比对和分数的比对。
+   1 oot批量比对
+	 oot线下：去oot数据即可
+	 oot线上：对于新颜模型，线上我们将新颜特征屏蔽，跑出其他所有特征。将线下oot中xinyan特征合并到线上oot数据中
+	 
+   2 调用模型分别对线上线下oot数据进行预测将 score保存。
+   
+   3 对比线上线下oot 分数，找出差异较大的order_id
+   
+   4 如果存在可疑样本，单独找出这个样本，对比每一个特征是否存在差异
+	 
+
+7 敲定门槛分
+   1 取时间较近的订单若干，不区分是否通过
+   select order_id,product_name from shilupan_dw.dw_slp_order_detail 
+       where pt=20190903 and product_name='嘉卡' and order_type='0' and
+	   create_time>='2019-09-03 00:00:00' and create_time>'2019-09-04 00:00:00' and model_id like '%mx%';
+	   
+   2 用新模型跑出新样本分数，分数排序，通过预先设定通过率的来计算对应的门槛分，找到门槛分之后，
+     去oot数据通过门槛分来查看对应的贷后表现,最终找到一个最优的门槛分
+   
+   3 如果为组合模型，比如第一道跑A27不是新颜模型，需要先跑出这个模型下的分数，第一道门槛分，
+   一般第一道过滤前50% 进入第二道新颜模型，在确定新模型门槛分时，需要找一些有新颜特征的数据，这些样本一般都是第一道50%筛选完之后的。
+    算出这一部分样本特征，跑新模型出分数，分别计算20% 18% 16% 等通过率下的门槛分。
+	确定门槛分之后，去oot样本分数，计算各个门槛分下的pd7，最终选择最优门槛分
+
+8 模型上线，监控

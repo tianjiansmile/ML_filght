@@ -34,4 +34,6 @@ algo 算法文档  https://neo4j.com/docs/graph-algorithms/current/algorithms/lo
 	
 						 
 利用Gephi 对neo4j数据进行可视化
-   可以将逾期用户和黑名单用户进行标记，然后可视化先观察一下这些用户的社交情况   
+   可以将逾期用户和黑名单用户进行标记，然后可视化先观察一下这些用户的社交情况
+
+如果想要看可视化之后3D效果图，并且可以旋转着看得话，去掉 pycharm-setting-Python Scentific

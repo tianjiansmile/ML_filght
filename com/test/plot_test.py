@@ -26,6 +26,29 @@ def plot_check(df ):
     plt.show()
 
 
+# 对每一个特征画图了解分布情况
+def plot_check():
+
+    df = pd.read_csv("data/all_model_score.csv")
+    # plt.plot(df['month'])
+    # df['model_score_pd7'].plot()
+    # df['model_score_m1'].plot()
+
+    # 直方图
+    # df['model_score_pd7'].plot.hist()
+
+    # 概率密度图
+    # df['model_score_pd7'].plot.density()
+
+    sns.kdeplot(df['model_score_pd7'])
+    sns.kdeplot(df['model_score_m1'])
+    sns.kdeplot(df['model_score_m2'])
+    sns.kdeplot(df['model_score_m3'])
+    sns.kdeplot(df['model_score_m4'])
+
+    plt.show()
+
+
 dat = {'hj':hj,'mz':mz,'ym':ym,'bj':bj,'rnn':rnna,'month':month}
 
 data = pd.DataFrame(dat)

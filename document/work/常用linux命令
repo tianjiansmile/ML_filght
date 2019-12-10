@@ -67,3 +67,7 @@ echo > log.txt
 find . -name '*.txt' -type f -print -exec rm -rf {} \;
 
 
+# GPU使用情况
+nvidia-smi
+
+

@@ -66,6 +66,13 @@ echo > log.txt
 删除以某后缀结尾的文件
 find . -name '*.txt' -type f -print -exec rm -rf {} \;
 
+win10 安装pytorch  pip3 install https://download.pytorch.org/whl/cu90/torch-1.0.0-cp36-cp36m-win_amd64.whl
+记住cp 代表python版本，3.7 就是37   3.6对应就是36
+
+升级python包
+pip3 install --upgrade tensorflow==1.4.0
+
+
 
 # GPU使用情况
 nvidia-smi

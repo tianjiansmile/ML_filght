@@ -63,13 +63,13 @@ def data_check(train):
 
 
 
-    # fig, (ax1, ax2) = plt.subplots(1, 2)
-    # fig.set_size_inches(16, 5)
-    # ax1.hist(uniq_values_in_categories.unique_values, bins=50)
-    # ax1.set_title('Amount of categorical features with X distinct values')
-    # ax1.set_xlabel('Distinct values in a feature')
-    # ax1.set_ylabel('Features')
-    # ax1.annotate('A feature with 326 vals', xy=(322, 2), xytext=(200, 38), arrowprops=dict(facecolor='black'))
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.set_size_inches(16, 5)
+    ax1.hist(uniq_values_in_categories.unique_values, bins=50)
+    ax1.set_title('Amount of categorical features with X distinct values')
+    ax1.set_xlabel('Distinct values in a feature')
+    ax1.set_ylabel('Features')
+    ax1.annotate('A feature with 326 vals', xy=(322, 2), xytext=(200, 38), arrowprops=dict(facecolor='black'))
     #
     # ax2.set_xlim(2, 30)
     # ax2.set_title('Zooming in the [0,30] part of left histogram')

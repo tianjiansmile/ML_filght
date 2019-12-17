@@ -78,3 +78,12 @@ pip3 install --upgrade tensorflow==1.4.0
 nvidia-smi
 
 
+# uwsgi 安装使用
+
+yum install -y gcc* pcre-devel openssl-devel
+yum install python36-devel
+pip3 install uwsgi
+
+
+
+

@@ -462,6 +462,8 @@ extend_info特征：5700维，主要内容盘点
 1. 逾期比率等比下降
 2. 在所有m1中 首逾pd7 占30% 70% 其其他期次逾期
 
+第三方数据接入测试
+
 
 
 开源项目介绍
@@ -489,6 +491,9 @@ LargeVis 大规模社交网络可视化，到目前还没调通
 
 Chinese-Text-Classification-Pytorch  
 https://zhuanlan.zhihu.com/p/73176084   中文文本分类  集成了诸多算法 从TextCNN 到 Bert
+
+PyG 图神经网络集大成，速度快
+https://github.com/rusty1s/pytorch_geometric
 	
 
 	 

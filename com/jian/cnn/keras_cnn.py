@@ -5,34 +5,57 @@ from tensorflow import layers
 # https://www.jianshu.com/p/d02980fd7b54
 
 # 保存模型的权重时，tf.keras默认为 checkpoint 格式。 通过save_format ='h5'使用HDF5。
+# 典型的CNN架构
 
 
-# 1 Sequential model 构建一个简单的全连接网络（即多层感知器）
-model = keras.Sequential()
-# Adds a 64个神经元的全连接层:
-model.add(keras.layers.Dense(64, activation='relu'))
-# Add another:
-model.add(keras.layers.Dense(64, activation='relu'))
-# Add a softmax layer with 10 output units:
-model.add(keras.layers.Dense(10, activation='softmax'))
+from keras.datasets import mnist
+from keras.utils import to_categorical
 
-# activation：设置层的激活函数。 此参数由内置函数的名称或可调用对象指定。 默认情况下，不应用任何激活。
-# Create a sigmoid layer:
-layers.Dense(64, activation='sigmoid')
-# Or:
-layers.Dense(64, activation=tf.sigmoid)
+train_X, train_y = mnist.load_data()[0]
+train_X = train_X.reshape(-1, 28, 28, 1)
+train_X = train_X.astype('float32')
+train_X /= 255
+train_y = to_categorical(train_y, 10)
 
-# kernel_initializer 和 bias_initializer：设置层创建时，权重和偏差的初始化方法。指定方法：名称 或 可调用对象。默认为"Glorot uniform" initializer
-# A linear layer with L1 regularization of factor 0.01 applied to the kernel matrix:
-layers.Dense(64, kernel_regularizer=keras.regularizers.l1(0.01))
-# A linear layer with L2 regularization of factor 0.01 applied to the bias vector:
-layers.Dense(64, bias_regularizer=keras.regularizers.l2(0.01))
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPool2D, Flatten, Dropout, Dense
+from keras.losses import categorical_crossentropy
+from keras.optimizers import Adadelta
 
-# A linear layer with a kernel initialized to a random orthogonal matrix:
-layers.Dense(64, kernel_initializer='orthogonal')
-# A linear layer with a bias vector initialized to 2.0s:
-layers.Dense(64, bias_initializer=keras.initializers.constant(2.0))
+model = Sequential()
+# 第一层：卷积层
+# 这一层的输入的原始的图像像素，该模型接受的图像为28*28*1，32个5*5卷积核，步长为1，不使用全0填充。
+# 所以这层输出的尺寸为18-5+1=14，这个张量是长宽14*14深度为32，相当于32张卷积后的照片
+model.add(Conv2D(32, (5,5), activation='relu', input_shape=[28, 28, 1]))
+# 再一层卷积层，该层接受的图像为14*14*32，64个5*5卷积核
+# # 所以这层输出的尺寸为14-5+1=10，这个张量是长宽10*10深度为64，相当于64张卷积后的照片
+model.add(Conv2D(64, (5,5), activation='relu'))
+# 再一层池化层，该层接受的图像为10*10*64，输出尺度 5*5*64
+model.add(MaxPool2D(pool_size=(2,2)))
+# Flatten层用来将输入“压平”，即把多维的输入一维化，常用在从卷积层到全连接层的过渡。Flatten不影响batch的大小。
+model.add(Flatten())
+model.add(Dropout(0.5))
+# 再一层全连接层 输出128维
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+# 最后一层输出层
+model.add(Dense(10, activation='softmax'))
+# 编译
+model.compile(loss=categorical_crossentropy,
+             optimizer=Adadelta(),
+             metrics=['accuracy'])
 
-model.compile(optimizer=tf.train.AdamOptimizer(0.001),
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
+batch_size = 100
+epochs = 8
+# 训练
+model.fit(train_X, train_y,
+         batch_size=batch_size,
+         epochs=epochs)
+
+test_X, test_y = mnist.load_data()[1]
+test_X = test_X.reshape(-1, 28, 28, 1)
+test_X = test_X.astype('float32')
+test_X /= 255
+test_y = to_categorical(test_y, 10)
+loss, accuracy = model.evaluate(test_X, test_y, verbose=1)
+print('loss:%.4f accuracy:%.4f' %(loss, accuracy))

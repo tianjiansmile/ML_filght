@@ -46,6 +46,8 @@ ll -h
 gzip FileName .tar.gz
 tar zcvf FileName.tar.gz DirName
 
+gzip –c filename > filename.gz
+
 解压
 gzip -d FileName.gz
 tar zxvf FileName.tar.gz

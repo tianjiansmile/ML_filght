@@ -80,6 +80,7 @@ y_validation = scaler.inverse_transform([y_validation])
 
 # 评估模型
 train_score = math.sqrt(mean_squared_error(y_train[0], predict_train[:, 0]))
+#用根均方误差评估
 print('Train Score: %.2f RMSE' % train_score)
 validation_score = math.sqrt(mean_squared_error(y_validation[0], predict_validation[:, 0]))
 print('Validatin Score: %.2f RMSE' % validation_score)
@@ -96,7 +97,12 @@ predict_validation_plot[len(predict_train) + look_back * 2 + 1:len(dataset) - 1,
 
 # 图表显示
 dataset = scaler.inverse_transform(dataset)
+# 原始数据
 plt.plot(dataset, color='blue')
+# 对训练数据的预测结果
 plt.plot(predict_train_plot, color='green')
+# 对测试数据的预测结果
 plt.plot(predict_validation_plot, color='red')
+
+# 图表显示最终真实值与预测结果拟合的非常好
 plt.show()

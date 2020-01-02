@@ -489,7 +489,9 @@ if __name__ == '__main__':
     # file = 'feature.xls'
     # approve_predict(file)
 
-    overdue_predict()
+    data_check()
+
+    # overdue_predict()
 
     endtime = time.time()
     print(' cost time: ', endtime - starttime)

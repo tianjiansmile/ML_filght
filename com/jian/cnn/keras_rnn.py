@@ -16,7 +16,9 @@ filename = 'data/cases.csv' #数据文件，两列，一列是时间，另外一
 look_back=1 #时间窗口，步长为1，即用今天预测明天;
 
 #此函数的目的是将输入的每日的进件量数据作为输入和输出，Y是X的下一个输出;
-
+# 序列数据的回归问题不同与一般的分类问题， 这里每一个Y对应的X都是Y之前所有的序列数据
+# 在RNN结构中，每一层的输入都是前一个序列值，每一层的输出都是后一个序列值，每一层的神经元会携带前若干个输入序列的信息
+# 所以在构造训练数据时，x取当前值，y取后一个值
 def create_dataset(dataset):
     dataX, dataY = [], []
     for i in range(len(dataset) - look_back - 1):
@@ -60,6 +62,7 @@ train, validation = dataset[0: train_size, :], dataset[train_size: len(dataset),
 X_train, y_train = create_dataset(train)
 X_validation, y_validation = create_dataset(validation)
 
+print(X_train.shape)
 # 将输入转化成为【sample， time steps, feature]
 X_train = np.reshape(X_train, (X_train.shape[0], 1, X_train.shape[1]))
 X_validation = np.reshape(X_validation, (X_validation.shape[0], 1, X_validation.shape[1]))

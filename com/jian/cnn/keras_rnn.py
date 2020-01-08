@@ -37,6 +37,7 @@ def create_dataset(dataset):
 
 def build_model():
     model = Sequential()
+    # units=4  神经元个数，其实就是四个门
     model.add(LSTM(units=4, input_shape=(1, look_back)))
     model.add(Dense(units=1)) #输出层采用全连接层;
     model.compile(loss='mean_squared_error', optimizer='adam') #损失函数是均方差，优化器是采用adam;

@@ -1,6 +1,7 @@
 Keras简介
 Keras中文文档
 https://keras-cn.readthedocs.io/en/latest/for_beginners/concepts/
+https://keras.io/zh/examples/imdb_bidirectional_lstm/
 
 Keras的底层库使用Theano或TensorFlow，这两个库也称为Keras的后端。无论是Theano还是TensorFlow，都是一个“符号式”的库。
 符号主义的计算首先定义各种变量，然后建立一个“计算图”，计算图规定了各个变量之间的计算关系。建立好的计算图需要编译以确定其内部细节，

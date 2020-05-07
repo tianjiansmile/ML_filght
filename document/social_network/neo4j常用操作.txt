@@ -201,6 +201,26 @@ linux
            (ir)-[:KNOWS]->(js),(ir)-[:KNOWS]->(ally),
            (rvb)-[:KNOWS]->(ally)
 
+     create (a:conpany {pur:"a"}),(b:conpany {pur:"b"}),(c:conpany {pur:"c"}),(d:conpany {pur:"d"}),
+           (e:conpany {pur:"e"}),(f:conpany {pur:"f"}),(g:conpany {pur:"g"}),(h:conpany {pur:"h"}),
+           (i:conpany {pur:"i"}),(j:conpany {pur:"j"}),(k:conpany {pur:"k"}),(l:conpany {pur:"l"}),
+           (m:conpany {pur:"m"}),(n:conpany {pur:"n"}),(o:conpany {pur:"o"}),(p:conpany {pur:"p"}),
+           (a)-[:buy {times:3}]->(e),(a)-[:buy {times:3}]->(f),
+           (b)-[:buy {times:15}]->(f),(b)-[:buy {times:20}]->(l),
+           (c)-[:buy {times:10}]->(e),(c)-[:buy {times:10}]->(f),(c)-[:buy {times:8}]->(g),(c)-[:buy {times:55}]->(h),
+           (c)-[:buy {times:38}]->(m),
+           (d)-[:buy {times:3}]->(h),
+           (e)-[:buy {times:5}]->(l),(e)-[:buy {times:15}]->(i),(e)-[:buy {times:2}]->(f),
+           (f)-[:buy {times:24}]->(i),(f)-[:buy {times:45}]->(j),
+           (g)-[:buy {times:12}]->(j),(h)-[:buy {times:9}]->(k),
+           (i)-[:buy {times:10}]->(m),
+           (j)-[:buy {times:44}]->(m),(j)-[:buy {times:10}]->(n),
+           (k)-[:buy {times:3}]->(m),(k)-[:buy {times:3}]->(n),
+           (l)-[:buy {times:7}]->(o),(m)-[:buy {times:30}]->(o),(m)-[:buy {times:30}]->(p),
+           (n)-[:buy {times:12}]->(p),
+
+
+
 4 模式匹配 一个可以用来查找 Emil 的朋友的模式: 
     MATCH (ee:Person)-[:KNOWS]-(friends)        # 用变量名和标签共同来确定一个节点 ee:Person，匹配类型：KNOWS， friends代表当前节点指向的节点集合变量
           WHERE ee.name = "Emil" RETURN ee, friends   # 用属性来查询

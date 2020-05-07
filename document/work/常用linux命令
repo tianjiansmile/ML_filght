@@ -46,6 +46,9 @@ ll -h
 gzip FileName .tar.gz
 tar zcvf FileName.tar.gz DirName
 
+zip test.zip tmb
+zip -r test.zip tmb/
+
 gzip –c filename > filename.gz
 
 解压
@@ -74,6 +77,12 @@ win10 安装pytorch  pip3 install https://download.pytorch.org/whl/cu90/torch-1.
 升级python包
 pip3 install --upgrade tensorflow==1.4.0
 
+tensorflow 跑深度学习的问题
+如果使用gpu版本， 由于本机是cuda10 故 tensorflow-gpu使用 tensorflow-gpu==1.13.1
+如果出现问题，将tensorflow相关的包都卸载之后，不要安装tensorflow
+直接安装tensorflow-gpu，如果出现protobuf相关的错误，务必确保protobuf版本与python版本完全一致
+比如protobuf==3.6.1
+
 
 
 # GPU使用情况
@@ -85,6 +94,21 @@ nvidia-smi
 yum install -y gcc* pcre-devel openssl-devel
 yum install python36-devel
 pip3 install uwsgi
+
+# 关闭防火墙
+systemctl stop firewalld
+
+启动防火墙
+systemctl start firewalld.service 
+
+# linux jupyter启动，并远程访问
+https://www.jb51.net/article/126089.htm
+
+# 启动uwsgi报错，处理方式
+export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
+ln -s /root/anaconda3/lib/libssl.so.1.1 /usr/lib64/libssl.so.1.1
+ln -s /root/anaconda3/lib/libcrypto.so.1.1 /usr/lib64/libcrypto.so.1.1
+
 
 
 

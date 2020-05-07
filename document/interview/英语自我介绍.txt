@@ -1,0 +1,96 @@
+hi nice to meet you 
+ my name is tianjian i come from gansu and graduated from bohai University with a bachelor degree
+and i will graduate from East China Normal University in 3 month with my mater degree。and my major is software engineering
+
+上一份工作
+My last job was in a risk control company, my major work in that company is risk model build and knowledge graph Research and data mining
+
+knowledge graph Research is the most important work in that company, 
+i dominanted this preject and Participated the whole process of this preject from start to the end.
+i have to say i really learnd a lot about knowledge graph and the Graph Embedding things.
+
+个人爱好
+i have lots of hobby , expect data mining and ml . in the spare time i wloud like to play bastketball and playing Guitar.
+ok thank you this is my personal introduction
+
+
+好工作定义
+  i think a good jod should contain three point at least
+      first the development of the job or the platform the company
+	  
+	  senond ,you need to interested in this jod ,otherwise ,you will never make good performance in the future work
+	  
+	  the third point i think it should be the salary, a good  salary pakeage will make company member have More passion on their own work
+	  
+好boss 好老板 定义	  
+ good company or good boss should provide our employees a good paltform to develop to grow up,
+ good boos should make the right person in the right position , lots of boos not qualified in this part 
+ otherwise ,you will never make good performance in the future work
+ other point, i think it should be the salary, a good  salary pakeage will make company member have More passion on their own work
+	   
+自我定位
+ i think i am a Self driven person, my favorite thing is to finding valueable information in big data , this kind of work really  make me exciting turely.
+ some times the leader will tell me the problem or work he wanted to implement, but he will never tell me how to implement it 
+ so i need to take care all the things , such as the knowledge graph production , my boss tell he want me to build one,
+ i have no idea with knowledge graph at all ,really i never hear about it in that time , so when i get the work goal, i will 
+ finish it in the end.
+ 
+未来发展
+ in future work , i would like to do more research on data mining and knowledge graph , and this will be my life long career,
+ so i want to do more work with NLP and  knowledge graph
+ 
+处理工作难题
+i have to say there really have many difficults in our daily work, when i face the difficult i will handle it by myself firstly,
+google or baidu is the perfect method to deal with it, there have lots of relative knowledge for you to check, generally, you can find the 
+anwer with the internet, otherwise, i will discuss it with my colleague or my friend to get more information ,
+
+
+
+处理工作压力
+i have to say there really have many work press in my last job ,it is a Frontline Internet company, there have more work stress in common business,
+all stress should handled by youself generally, but i think we should have more communication with the leader or boss, after all communication alswaly
+be a good way to fix the problem
+
+你的英语，怎么样
+i havent speak english for one half year,i dont speak english in my last job ,but i have been worked in citi group for six month ,
+we speak english in daily meeting , and we use english to send email, i think pwc and citi have some same work environment, i can handle the oral communication
+
+风控模型
+we use xgboosting algorithm to build the risk model, 
+firstly we need to choose the right data samples and split it to train data and test data 
+th train data will train the model and we wiil save the best performance model ,then we will use the test data to estimate the performance of the model
+we user KS and AUC to estimate the model ,also we can use precision or recall to deal with, 
+finally we should replace the old model with it in our production environment, still we need to monitor the new model for a while 
+
+知识图谱介绍
+knowledge graph contains two kinds concept we should know, node and relationship, 
+i use call record and emergencer data to be the graph relationship and the user or the phone number will be the node
+then we can use the graph database to save the graph such as neo4j or titan
+i developed lots of risk features with this graph , Graph Eembedding vector feature is one of the greatest feature in this job .
+i also used some frontline graph algorithm to develop the high level graph feature,
+such deepwalk, line, node2vec, Struct2vec, GCN  algorithm, some researcher in alibaba did great
+work in this areas
+in finally it prove that Graph Eembedding feature can improve the risk model performance in production environment
+
+1. 背景介绍部分参考文献太少。
+2. 表达比较口语化。应该多用连接语，使逻辑连贯。许多句子太长，应该适当结束。然后通过逻辑连接语继续写下去。
+3. 段间距、行距、字体大小等应通篇统一
+4. 得的地不分
+5. 公式都应该有编号
+6. 指代公式、表格、图片时，应该使用标号。如“如图3-4所示”，而不是“如上图”、“如下图”等。
+7. 文章有多处有参考网络博文和图片的痕迹
+8. 图片、表格、公式都应该有更详细的描述。
+9. 大章之间是空几行还是分页，要统一
+10. 应该加页码
+11. 表名应该在表上方
+12. 应通读全文，修改大量显而易见的错误。
+13. 英语专有名词使用时大小写应该准确且全文一致，如DeepWalk、LINE等
+14. 伪代码应该遵循特定的格式，可以参考其他人的论文
+15. 很多图没有居中，大小需要调整，部分图模糊。
+16. 不要使用网上的图片，尤其不可以带水印。绝对不可以有此现象，否则论文肯定过不了。
+
+
+ 
+
+
+ 

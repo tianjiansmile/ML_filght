@@ -419,6 +419,10 @@
 	--ignore-extra-columns
 	--ignore-missing-nodes
 	--ignore-duplicate-nodes
+	
+	neo4j-admin import --nodes:concept E:/data/concept.csv --nodes:person E:/data/executive.csv --nodes:stock E:/data/stock.csv  --nodes:industry E:/data/industry.csv 
+	--relationships:work_in E:/data/executive_stock.csv --relationships:belong_to E:/data/stock_industry.csv --relationships:belong_to E:/data/stock_concept.csv 
+	--ignore-extra-columns --ignore-missing-nodes --ignore-duplicate-nodes
 	    
 	  
 	  
@@ -507,3 +511,6 @@ CALL algo.pageRank(
    2. 直接利用textCNN或是其他文本分类模型对节点进行分类
    
 deepwalk neo4j 相关 https://neo4j.com/blog/deepwalk-implementing-graph-embeddings-in-neo4j/
+
+华东师范大学 中文企业知识图谱构建与分析
+http://cdmd.cnki.com.cn/Article/CDMD-10269-1016126877.htm

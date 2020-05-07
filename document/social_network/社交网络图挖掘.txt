@@ -52,21 +52,56 @@ MATCH (a)-[r1]-() DELETE a,r1
    
 六度分割理论，小世界理论：
    如果一个社区，或是一个子图的平均路径长度小于等于6的话，可以将这样一个子图定义为小世界网络
+   
 1 centrality  
    基于最短路径的中心度算法
-   betweenness_centrality：网络中任意两个节点的所有最短路径，如果这些最短路径中有很多条都经过了某个节点，那么就认为这个节点的Betweenness Centrality高
-   closeness_centrality：如果节点到图中其它节点的最短距离都很小，那么我们认为该节点的Closeness Centrality高，
-                         从几何上更符合中心度的概念，因为到其它节点的平均最短距离最小，意味着这个节点从几何角度看是出于图的中心位置
-						 大数据量下，经典的Closeness Centrality和Betwenness Centrality几乎都是不可计算的
+   
+   1.度中心性degree Centrality 
+     度量节点的出度和入度个数，度数高的节点可以反映一个节点的受欢迎程度
+	 CALL algo.degree('conpany', 'buy',{write: true, writeProperty:'degree_clo', concurrency:4,direction:'out'})
+      YIELD nodes, loadMillis, computeMillis, writeMillis, write, writeProperty
+   2.中介中心性betweenness_centrality：
+   网络中任意两个节点的所有最短路径，如果这些最短路径中有很多条都经过了某个节点，那么就认为这个节点的Betweenness Centrality高
+   CALL algo.betweenness('conpany', 'buy',
+   {direction:'out',write:true, stats:true, writeProperty:'betweeness',concurrency:1})
+    YIELD nodes, minCentrality, maxCentrality, sumCentrality, loadMillis, computeMillis, writeMillis
+    direct为图中的关系方向，默认为out， stats：指定是否应返回关于中心的统计信息。默认为true
+    sumCentrality所有中心值的和
+	计算大型图时，需要采用近似计算策略
+	{strategy:'random',probability:0.81, direction: "out"})
+
+   3. 紧密中心性closeness_centrality：
+     如果节点到图中其它节点的最短距离都很小，那么我们认为该节点的Closeness Centrality高，
+     从几何上更符合中心度的概念，因为到其它节点的平均最短距离最小，意味着这个节点从几何角度看是出于图的中心位置
+     大数据量下，经典的Closeness Centrality和Betwenness Centrality几乎都是不可计算的
+	 
+	 CALL algo.closeness('conpany', 'buy', {write:true, writeProperty:'closenss',irection:'out'})
+       YIELD nodes,loadMillis, computeMillis, writeMillis;
 						 
    harmonic_centrality：接近中心度的代替方案：计算的是一个点到其他所有点的距离的总和，这个总和越小就说明这个点到其他所有点的路径越短，也就说明这个点距离其他所有点越近
    
-   利用中介度来发现社区
-	常见做法：是从一个包含全部边的中介度，不断去掉具有最高中介度的边，直到图分裂为合适数目的连通分量为止。
-	存在的局限性：不可能把一个节点分配到两个社区中，这导致每个节点最终都分配到各自社区中。
+   
+   4. 基于反馈的中心度算法
+     PageRank：
+	 call algo.pageRank('conpany','buy',{iterations:20,dampingFactor:0.85,write:true}) YIELD nodes,iterations,dampingFactor,write
+	 
+    以上算法在有权图中均可以使用，需要配置 weightproperty：＇xxxx＇
+	call algo.pageRank('conpany','buy',{iterations:20,dampingFactor:0.85,write:true,weightProperty:'times',writeProperty:'w_pagerank'})
+	YIELD nodes,iterations,dampingFactor,write
 	
-   基于反馈的中心度算法
-   PageRank：
+	
+	 强连通子图
+	 CALL algo.scc
+	
+	随机游走
+	MATCH (a:conpany {pur: "a"}) CALL algo.randomWalk.stream(id(a), 5, 1)
+	YIELD nodeIds
+	UNWIND nodeIds AS nodeId RETURN nodeId
+	
+	环检测
+	match path=(x)-[]->(y) UNWIND NODES(path) as n with path SIZE(COLLECT(DISTINCT n)) as testLength where testLength=LENGTH(path)+1 return path 
+   
+   
    
    
 2 community_detection:
